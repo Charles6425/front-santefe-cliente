@@ -1,0 +1,83 @@
+.container {
+    min-height: 100vh;
+    display: flex;
+    background: #faf9fd;
+}
+
+.sidenav-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: 0;
+    height: auto;
+    background: #faf9fd;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.sidenav-content button {
+    border: none;
+    width: 50px;
+    height: 50px;
+    background-color: #faf9fd;
+    cursor: pointer;
+}
+
+.sidenav-content button[mat-icon-button] {
+    box-shadow: none !important;
+    border-bottom: none !important;
+    outline: none;
+    background: #faf9fd;
+}
+
+.mat-list-item {
+    display: flex;
+    align-items: center;
+}
+
+.sidenav {
+    width: 220px;
+    background: #faf9fd;
+}
+
+mat-drawer.sidenav {
+    background: #faf9fd !important;
+}
+
+.navlist {
+    display: flex;
+    flex-direction: column;
+    border-radius: 5px;
+}
+
+.material-icons {
+    font-size: 24px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.mat-list-item span {
+    font-size: 16px;
+}
+
+@media screen and (max-width: 768px) {
+    .sidenav {
+        width: 148px;
+    }
+
+    .sidenav-content button {
+        width: 35px;
+        height: 35px;
+    }
+
+    .navlist {
+        font-size: 12px;
+    }
+}

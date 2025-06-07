@@ -1,0 +1,32 @@
+<mat-drawer-container class="container" autosize>
+  <mat-drawer #drawer class="sidenav" mode="side">
+    <mat-nav-list class="nav-list">
+      <a mat-list-item routerLink="/home" (click)="goHome()" routerLinkActive="active" *ngIf="isAuthenticated()">
+        <i class="material-icons">home</i>
+        <span>Home</span>
+      </a>
+      <ng-container *ngIf="!isAuthenticated()">
+        <a mat-list-item (click)="goLogin()">
+          <i class="material-icons">login</i>
+          <span>Login</span>
+        </a>
+        <a mat-list-item (click)="goCriarConta()">
+          <i class="material-icons">person_add</i>
+          <span>Criar conta</span>
+        </a>
+      </ng-container>
+      <ng-container *ngIf="isAuthenticated()">
+        <a mat-list-item routerLink="/vendas" (click)="goVendas()" routerLinkActive="active">
+          <i class="material-icons">local_grocery_store</i>
+          <span>Vendas</span>
+        </a>
+      </ng-container>
+    </mat-nav-list>
+  </mat-drawer>
+  <div class="sidenav-content">
+    <button mat-icon-button (click)="drawer.toggle(); toggleMenu()">
+      <mat-icon>{{ isMenuOpen ? 'arrow_back' : 'menu' }}</mat-icon>
+    </button>
+    <!-- router-outlet removido daqui -->
+  </div>
+</mat-drawer-container>

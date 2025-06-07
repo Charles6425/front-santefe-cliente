@@ -1,0 +1,18 @@
+<div class="login-container">
+  <mat-card>
+    <h2>Login</h2>
+    <form (ngSubmit)="login()" autocomplete="off">
+      <mat-form-field appearance="fill" class="login-field">
+        <mat-label>CPF</mat-label>
+        <input matInput [(ngModel)]="cpf" name="cpf" required maxlength="14" autocomplete="username">
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="login-field">
+        <mat-label>Senha</mat-label>
+        <input matInput [(ngModel)]="senha" name="senha" type="password" required autocomplete="current-password">
+      </mat-form-field>
+      <button mat-raised-button color="primary" type="submit" [disabled]="loading">Entrar</button>
+      <div *ngIf="error" class="login-error">{{ error }}</div>
+      <div *ngIf="loading" class="login-loading">Entrando...</div>
+    </form>
+  </mat-card>
+</div>

@@ -1,0 +1,582 @@
+.carrinho-container {
+    padding: 1rem;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0;
+}
+
+.carrinho-vazio {
+    text-align: center;
+    color: #666;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.carrinho-item {
+    background-color: white;
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.carrinho-item:first-child {
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+/* Animação para cada item do carrinho */
+@keyframes slideIn {
+    from {
+        transform: translateY(-10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    text-align: left;
+}
+
+.item-nome {
+    font-weight: bold;
+    color: #333;
+    text-align: left;
+}
+
+.item-categoria {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: left;
+}
+
+.item-valor {
+    color: #b61c23;
+    font-weight: bold;
+}
+
+.item-controles {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.qtd-btn {
+    background: linear-gradient(145deg, #cc1f27, #b61c23);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+}
+
+.qtd-btn:hover {
+    background: linear-gradient(145deg, #b61c23, #cc1f27);
+    transform: translateY(-1px);
+}
+
+.qtd-btn:active {
+    transform: translateY(0);
+    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.qtd-btn:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Mantém a transição suave apenas para a quantidade */
+.quantidade {
+    min-width: 24px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.remover-btn {
+    background: none;
+    border: none;
+    color: #b61c23;
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.remover-btn:hover {
+    background-color: rgba(182, 28, 35, 0.1);
+    color: #8b0000;
+    transform: scale(1.1);
+}
+
+.produto-info {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+}
+
+.material-icons {
+    vertical-align: middle;
+    margin-left: 0.5rem;
+    color: #b61c23;
+}
+
+.category-container,
+.produto-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.category-container p,
+.produto-container p {
+    text-align: center;
+    color: #666;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 8px;
+    margin: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.produto-button,
+.category-button {
+    text-align: left;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 5px 5px 10px #d9d9d9,
+                -5px -5px 10px #ffffff;
+    transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.category-button:hover,
+.produto-button:hover {
+    background: linear-gradient(145deg, #f0f0f0, #ffffff);
+    transform: translateY(-2px);
+    box-shadow: 6px 6px 12px #d9d9d9,
+                -6px -6px 12px #ffffff;
+}
+
+.category-button:active,
+.produto-button:active {
+    background: linear-gradient(145deg, #e6e6e6, #ffffff);
+    transform: translateY(0);
+    box-shadow: inset 5px 5px 10px #d9d9d9,
+                inset -5px -5px 10px #ffffff;
+}
+
+/* Adicione ícones mais sofisticados */
+.bx {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+}
+
+.bx-cart-add:hover {
+    transform: scale(1.2);
+    color: #b61c23;
+}
+
+.carrinho-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid #eee;
+    animation: fadeIn 0.5s ease-out forwards;
+    animation-delay: 0.3s;
+    opacity: 0;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.total-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.total-label {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.total-valor {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #b61c23;
+    letter-spacing: 0;
+}
+
+.finalizar-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(145deg, #b61c23, #931017);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+}
+
+.finalizar-btn:hover {
+    background: linear-gradient(145deg, #cc1f27, #b61c23);
+    transform: translateY(-2px);
+    box-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+}
+
+.finalizar-btn:active {
+    background: linear-gradient(145deg, #931017, #b61c23);
+    transform: translateY(0);
+    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.finalizar-btn i {
+    font-size: 1.4rem;
+}
+
+.finalizar-btn:enabled {
+    background: linear-gradient(145deg, #b61c23, #931017);
+    color: #fff;
+}
+
+.finalizar-btn:disabled {
+    background: #cccccc;
+    color: #fff;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Melhora a distribuição dos inputs do formulário de finalização de venda para ocupar 100% da largura, com grid responsivo e espaçamento harmonioso */
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 1.2rem;
+    width: 100%;
+}
+.cpf-field, .nome-field, .endereco-field, .desconto-field, .acrescimo-field, .tipo-atendimento-field, .pagamento-field, .mesa-field, .nome-desconto-field, .nome-acrescimo-field, .horario-entrega-field, .horario-retirada-field {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 0 !important;
+}
+.observacao-venda-field {
+    width: 100%;
+    grid-column: 1/-1;
+    margin-bottom: 1rem !important;
+}
+@media (max-width: 900px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.7rem;
+        margin-bottom: 1rem;
+    }
+    .observacao-venda-field {
+        margin-bottom: 0.7rem !important;
+    }
+}
+@media (max-width: 700px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        margin-bottom: 0.7rem;
+    }
+    .observacao-venda-field {
+        margin-bottom: 0.5rem !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .carrinho-container {
+        max-height: none;
+        overflow-y: visible;
+        padding-bottom: 110px;
+    }
+    .cpf-field, .nome-field, .endereco-field, .observacao-venda-field, .nome-desconto-field, .nome-acrescimo-field, .horario-entrega-field, .horario-retirada-field {
+        min-width: 100%;
+        flex: 1 1 100%;
+        margin-right: 0;
+    }
+    .form-row {
+        gap: 0.7rem;
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 700px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 0.7rem;
+    }
+    .mesa-field, .pagamento-field, .tipo-atendimento-field, .cliente-field, .desconto-field, .acrescimo-field {
+        min-width: 100%;
+        flex: 1 1 100%;
+    }
+    .carrinho-container {
+        max-height: none;
+        overflow-y: visible;
+        padding-bottom: 120px;
+    }
+    .cpf-field, .nome-field, .endereco-field, .observacao-venda-field, .nome-desconto-field, .nome-acrescimo-field, .horario-entrega-field, .horario-retirada-field {
+        min-width: 100%;
+        flex: 1 1 100%;
+        margin-bottom: 0.5rem !important;
+    }
+    .finalizar-btn {
+        font-size: 0.95rem;
+        padding: 0.8rem;
+    }
+}
+
+/* Espaçamento extra para campos de horário e observação */
+.horario-entrega-field, .horario-retirada-field {
+    margin-top: 0.5rem;
+}
+.nome-desconto-field, .nome-acrescimo-field {
+    margin-top: 0.5rem;
+}
+
+/* Moderniza e distribui melhor a linha de CPF + botão de aprovação, garantindo responsividade e alinhamento visual */
+.cpf-aprova-row {
+    display: flex;
+    align-items: baseline; /* Alterado de center para baseline */
+    gap: 0.7rem;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+.cpf-field {
+    flex: 2 1 220px;
+    min-width: 0;
+}
+.cpf-aprova-btn {
+    flex: 0 0 auto;
+    margin-bottom: 4px;
+    background: linear-gradient(145deg, #b61c23, #931017);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(182,28,35,0.10);
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.cpf-aprova-btn:hover {
+    background: linear-gradient(145deg, #cc1f27, #b61c23);
+    box-shadow: 0 4px 12px rgba(182,28,35,0.18);
+    transform: translateY(-2px) scale(1.08);
+}
+.cpf-aprova-btn:disabled {
+    background: #cccccc;
+    color: #fff;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+.cpf-aprova-btn i {
+    font-size: 1.2rem;
+}
+@media (max-width: 900px) {
+    .cpf-aprova-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    .cpf-aprova-btn {
+        width: 40px;
+        align-self: flex-end;
+        margin-bottom: 0;
+    }
+}
+@media (max-width: 700px) {
+    .cpf-aprova-row {
+        gap: 0.3rem;
+    }
+    .cpf-aprova-btn {
+        width: 38px;
+    }
+}
+
+/* Adicionado para alinhar o campo de CPF e o botão de busca */
+.cpf-aprova-row {
+    display: flex;
+    align-items: baseline; /* Alterado de center para baseline */
+    gap: 8px; /* Espaçamento entre o campo de CPF e o botão */
+}
+
+.cpf-field {
+    flex: 1; /* Faz o campo de CPF ocupar o espaço disponível */
+}
+
+.cpf-aprova-btn {
+    width: 56px; /* Largura do botão */
+    height: 56px; /* Altura do botão */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cpf-aprova-btn i {
+    font-size: 24px; /* Tamanho do ícone */
+}
+
+/* Estilo para o container do spinner */
+.spinner-container {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espaçamento entre o spinner e o texto */
+    margin-top: 8px; /* Margem superior para separar do campo de CPF */
+    font-size: 0.9em;
+    color: #555;
+}
+
+/* Adicionado para o campo de endereço ocupar 100% da largura */
+.endereco-field {
+    width: 100%;
+}
+
+/* Adicionado para alinhar campos na mesma linha, como telefone e horário */
+.form-row-flex-end {
+    display: flex;
+    gap: 16px; /* Espaçamento entre os campos */
+    align-items: flex-end; /* Alinha os itens na base */
+}
+
+.form-row-flex-end .mat-form-field {
+    flex: 1; /* Faz os campos dividirem o espaço igualmente */
+    /* A altura de 56px pode ser desnecessária se o align-items: flex-end funcionar bem */
+    /* height: 56px; */
+}
+
+/* Adicionado para o campo de observação da venda ocupar 100% da largura */
+.observacao-venda-field {
+    width: 100%;
+}
+
+/* Adicionado para o campo Nome do Cliente ocupar 100% da largura */
+.nome-cliente-field {
+    width: 100%;
+}
+
+/* Estilos Responsivos */
+@media (max-width: 768px) {
+    .form-row,
+    .form-row-flex-end,
+    .cpf-aprova-row {
+        flex-direction: column; /* Empilha os itens verticalmente */
+        gap: 0; /* Remove o gap para empilhamento, pode ajustar se necessário */
+    }
+
+    .form-row mat-form-field,
+    .form-row-flex-end mat-form-field,
+    .cpf-aprova-row mat-form-field,
+    .cpf-aprova-row .cpf-aprova-btn {
+        width: 100%; /* Faz os campos e o botão ocuparem a largura total */
+        margin-bottom: 16px; /* Adiciona espaço abaixo de cada item empilhado */
+    }
+
+    .cpf-aprova-row .cpf-aprova-btn {
+        height: auto; /* Altura automática para o botão se ajustar */
+        padding: 12px 0; /* Ajusta o padding do botão */
+    }
+
+    .cpf-aprova-btn i {
+        font-size: 20px; /* Pode reduzir o tamanho do ícone se necessário */
+    }
+
+    .desconto-field,
+    .acrescimo-field,
+    .tipo-atendimento-field,
+    .pagamento-field,
+    .mesa-field,
+    .cpf-field,
+    .endereco-field,
+    .telefone-field,
+    .horario-entrega-field,
+    .horario-retirada-field,
+    .observacao-venda-field,
+    .nome-desconto-field,
+    .nome-acrescimo-field {
+        width: 100%; /* Garante que todos os campos de formulário ocupem a largura total */
+    }
+
+    .total-container {
+        flex-direction: column; /* Empilha o label e o valor do total */
+        align-items: flex-start; /* Alinha à esquerda */
+    }
+
+    .total-label {
+        margin-bottom: 4px; /* Adiciona um pequeno espaço abaixo do label do total */
+    }
+
+    .item-controles {
+        flex-wrap: wrap; /* Permite que os botões de controle do item quebrem linha */
+        justify-content: flex-start;
+    }
+
+    .item-controles .qtd-btn,
+    .item-controles .remover-btn {
+        margin-top: 8px; /* Adiciona margem para botões que quebram linha */
+    }
+}
+
+@media (max-width: 480px) {
+    .carrinho-container h2 {
+        font-size: 1.5em; /* Reduz o tamanho do título principal */
+    }
+
+    .item-info .item-nome {
+        font-size: 1em;
+    }
+
+    .item-info .item-categoria,
+    .item-info .item-valor {
+        font-size: 0.9em;
+    }
+
+    .finalizar-btn {
+        font-size: 0.9em; /* Reduz o tamanho da fonte do botão finalizar */
+        padding: 10px 15px;
+    }
+}
