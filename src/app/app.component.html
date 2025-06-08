@@ -2,10 +2,9 @@
   <ng-container *ngIf="isAuthenticated(); else publicTpl">
     <app-header></app-header>
     <div class="main-layout">
-      <app-nav></app-nav>
-      <div class="main-content">
+      <main class="main-content">
         <router-outlet></router-outlet>
-      </div>
+      </main>
     </div>
     <app-footer></app-footer>
   </ng-container>

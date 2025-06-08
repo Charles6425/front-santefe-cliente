@@ -1,4 +1,12 @@
 <mat-toolbar class="header">
+  <button class="menu-btn" (click)="toggleMenu()" aria-label="Abrir menu">
+    <i class='bx' [ngClass]="menuOpen ? 'bx-x' : 'bx-menu'"></i>
+  </button>
   <h1>Restaurante Santa Fé</h1>
   <img src="/assets/logo.png" alt="Logo do Restaurante" />
+  <nav *ngIf="menuOpen" class="header-menu" [@menuAnimation]>
+    <a (click)="goHome()" [ngClass]="{ 'active': isActive('/home') }"><i class='bx bx-home'></i> Home</a>
+    <a (click)="goVendas()" [ngClass]="{ 'active': isActive('/vendas') }"><i class='bx bx-cart'></i> Vendas</a>
+    <a (click)="goLogin()"><i class='bx bx-log-out'></i> Sair</a>
+  </nav>
 </mat-toolbar>

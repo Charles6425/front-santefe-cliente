@@ -1,9 +1,6 @@
-
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HeaderComponent } from './view/components/template/header/header.component';
 import { FooterComponent } from './view/components/template/footer/footer.component';
-import { NavComponent } from './view/components/template/nav/nav.component';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
@@ -17,8 +14,6 @@ import { Router } from '@angular/router';
     CommonModule,
     HeaderComponent,
     FooterComponent,
-    NavComponent,
-    MatSidenavModule,
     RouterOutlet
   ],
   templateUrl: 'app.component.html'
