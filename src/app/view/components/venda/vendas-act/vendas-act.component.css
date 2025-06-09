@@ -6,6 +6,14 @@
     box-sizing: border-box;
 }
 
+.vendas-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 mat-card {
     width: 95%;
     margin: 1rem auto;
@@ -13,6 +21,11 @@ mat-card {
     background-color: #aa826f;
     border-radius: 8px;
     box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
 }
 
 mat-card-content {
@@ -20,6 +33,8 @@ mat-card-content {
     flex-direction: column;
     gap: 1rem;
     height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .cardapio-title {
@@ -68,9 +83,13 @@ mat-card-content {
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: auto;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
-.category-button,
+category-button,
 .produto-button {
     width: 100%;
     padding: 0.8rem 1rem;
@@ -225,4 +244,22 @@ mat-card-content {
     .cardapio-title h1 {
         font-size: 1.3rem;
     }
+}
+
+.main-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.main-content {
+  flex: 1 0 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #faf9fd;
+  padding: 0;
+  box-sizing: border-box;
 }

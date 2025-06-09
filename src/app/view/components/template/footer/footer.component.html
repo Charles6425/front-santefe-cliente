@@ -1,34 +1,20 @@
-<mat-toolbar class="footer">
+<footer class="footer">
   <div class="footer-content">
-    <!--<button class="footer-toggle" (click)="showLinks = !showLinks" aria-label="Mostrar contatos" *ngIf="isMobile">Nossos contatos <span [ngClass]="{'open': showLinks}">↑</span></button>
-    <ul class="list-links" [ngClass]="{'footer-links-hidden': isMobile && !showLinks}" *ngIf="!isMobile || showLinks">
-      <li>
-        <a href="https://api.whatsapp.com/send/?phone=551126300417&text=Ol%C3%A1%2C+gostaria+de+fazer+um+pedido%21&type=phone_number&app_absent=0" target="_blank" class="whatsapp">
-          <i id="whats" class='bx bxl-whatsapp'></i>
-          Nosso Whatsapp
-        </a>
-      </li>
-      <li>
-        <a href="https://www.instagram.com/santafesuzano/" target="_blank" class="instagram">
-          <i id="insta" class='bx bxl-instagram'></i>
-          Siga no Instagram
-        </a>
-      </li>
-      <li>
-        <a href="https://www.tiktok.com/@santafesuzano" target="_blank" class="tiktok">
-          <i id="tiktok" class='bx bxl-tiktok'></i>
-          Siga no TikTok
-        </a>
-      </li>
-      <li>
-        <a href="https://www.facebook.com/santafesuzano" target="_blank" class="facebook">
-          <i id="face" class='bx bxl-facebook-square'></i>
-          Acompanhe no Facebook
-        </a>
-      </li>
-    </ul>-->
+    <div class="footer-row">
+      <div class="footer-brand">
+        <img src="assets/logo.png" alt="Restaurante Santa Fé" class="footer-logo" />
+        <span class="footer-title">Restaurante Santa Fé</span>
+      </div>
+      <div class="footer-social">
+        <a href="https://wa.me/551126300417?text=Ol%C3%A1%2C%20venho%20pelo%20link%20do%20sistema%20de%20voc%C3%AAs." target="_blank" aria-label="WhatsApp" class="footer-social-btn whatsapp" rel="noopener noreferrer"><i class='bx bxl-whatsapp'></i></a>
+        <a href="https://instagram.com/santafesuzano/" target="_blank" aria-label="Instagram" class="footer-social-btn instagram" rel="noopener noreferrer"><i class='bx bxl-instagram'></i></a>
+        <a href="https://www.tiktok.com/@santafesuzano" target="_blank" aria-label="TikTok" class="footer-social-btn tiktok" rel="noopener noreferrer"><i class='bx bxl-tiktok'></i></a>
+        <a href="https://www.facebook.com/santafesuzano" target="_blank" aria-label="Facebook" class="footer-social-btn facebook" rel="noopener noreferrer"><i class='bx bxl-facebook'></i></a>
+      </div>
+    </div>
     <div class="footer-divider"></div>
-    <div class="footer-copy">&copy; 2025 Santa Fé. Todos os direitos reservados - Feito por David Bissaco Desenvolvedor Fullstack</div>
-    <div class="footer-divider"></div>
+    <div class="footer-copy">
+      © 2025 Santa Fé. Todos os direitos reservados — Feito por David Bissaco Desenvolvedor Fullstack
+    </div>
   </div>
-</mat-toolbar>
+</footer>

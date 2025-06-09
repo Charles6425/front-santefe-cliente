@@ -1,211 +1,288 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Satisfy&family=Winky+Sans:ital,wght@0,300..900;1,300..900&display=swap');
 
+/* Header customizado e responsivo sem Angular Material - Correções */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
 .header {
-    background-color: rgb(170, 130, 111);
-    padding: 0 24px;
-    height: 84px;
-    border-bottom: 1px solid #e9ecef;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    position: sticky;
+  background: linear-gradient(90deg, #aa826f 0%, #b68a6a 50%, #a07a65 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  padding: 0 16px;
+  height: 84px;
+  min-height: 64px;
+  overflow: visible;
+}
+.header-left, .header-center, .header-right {
+  display: flex;
+  align-items: center;
+}
+.header-center {
+  flex: 1 1 0;
+  justify-content: center;
+  min-width: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.header-center h1 {
+  pointer-events: auto;
+  font-family: 'Satisfy', cursive, 'Poppins', sans-serif;
+  color: #fff;
+  font-size: 2.1rem;
+  font-weight: 400;
+  margin: 0;
+  letter-spacing: 2px;
+  text-shadow: 1px 2px 8px rgba(0,0,0,0.10);
+  background: transparent;
+  padding: 0.3rem 2.2rem 0.3rem 1.2rem;
+  border-radius: 12px 0 0 12px;
+  box-shadow: none;
+  transition: background 0.2s, color 0.2s;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.header-left, .header-right {
+  z-index: 2;
+}
+.header {
+  position: relative;
+}
+.header-right img {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  margin-left: 8px; /* Igual ao sidenav-header */
+  margin-right: 8px; /* Igual ao sidenav-header */
+  object-fit: contain;
+}
+@media (max-width: 700px) {
+  .header {
+    flex-direction: row;
+    height: 64px;
+    padding: 0 6px;
+  }
+  .header-left {
+    flex: 0 0 auto;
+  }
+  .header-center {
+    position: absolute;
+    left: 0;
+    right: 0;
     top: 0;
-    z-index: 1000;
-}
-
-h1 {
-    font-family: 'Satisfy', cursive !important;
-    color: #fff;
-    text-align: left;
-    font-size: 26px; /* Reduzido para melhor proporção */
-    font-weight: 400; /* Peso mais leve para visual mais elegante */
-    margin-left: 0;
-    margin-right: 18px;
-    margin-bottom: 2px;
-    line-height: 1.1;
-    letter-spacing: 1.5px;
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-shadow: 1px 2px 8px rgba(0,0,0,0.10);
-}
-
-img {
-    width: 80px;
-    height: 70px;
-    margin-right: 0;
+    bottom: 0;
+    justify-content: center;
     align-items: center;
-    padding-top: 0;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.10));
-    border-radius: 10px;
-    background: none;
-    box-shadow: none;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .header-center h1 {
+    font-size: 1.1rem;
+    padding: 0.2rem 0.7rem 0.2rem 0.7rem;
+    border-radius: 8px 0 0 8px;
+    max-width: 90vw;
+    pointer-events: auto;
+  }
+  .header-right img {
+    width: 46px;
+    height: 46px;
+    margin-left: 8px;
+    margin-right: 8px;
+  }
 }
-
+.header {
+  background: linear-gradient(90deg, #aa826f 0%, #b68a6a 50%, #a07a65 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  height: 84px;
+  border-bottom: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  position: relative;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  margin-left: 0;
+}
 .menu-btn {
   background: none;
   border: none;
   color: #fff;
   font-size: 2rem;
-  margin-right: 18px;
+  margin-right: 12px;
+  margin-left: 8px; /* Padronizado para 8px */
   cursor: pointer;
-  display: none;
+  display: flex;
+  align-items: center;
+  z-index: 1101;
 }
-
+.menu-btn i {
+  cursor: pointer;
+}
 .header-menu {
+  position: absolute;
+  top: 84px;
+  left: 0;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  border-radius: 0 0 8px 8px;
+  min-width: 180px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Alinha todos os itens à esquerda */
-  gap: 1.2rem;
-  background: rgb(170, 130, 111); /* Marrom igual ao header */
+  padding: 12px 0;
+  z-index: 1001;
+  animation: fadeInDown 0.2s;
+  visibility: visible;
   opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.2s, transform 0.2s;
-  justify-content: flex-start;
-  width: 100%;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
 }
-
-.header-menu a {
-  width: 100%;
-  text-align: left;
-  justify-content: flex-start;
-  align-items: center;
-  display: flex;
-  padding-left: 0.5rem;
-  color: #fff; /* Branco para os links */
-}
-
-.header-menu a:hover, .header-menu a:focus {
-  background: #fff2;
-  color: #ffe6e6;
-}
-
-.header-menu a.active {
-  color: #b61c23 !important;
-  font-weight: 600;
-  background: transparent; /* Remove o fundo branco, mantém marrom */
-  border-radius: 8px;
-}
-
-.header-menu a.active i {
-  color: #b61c23 !important;
-}
-
-.header-menu.ng-animating-leave {
+.header-menu[hidden], .header-menu:not(.open) {
+  display: none !important;
+  visibility: hidden;
   opacity: 0;
-  transform: translateY(-20px);
-  pointer-events: none;
 }
-
-@media (max-width: 900px) {
-  .menu-btn {
-    display: block;
+.header-menu a {
+  color: #aa826f;
+  padding: 10px 24px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header-menu a.active,
+.header-menu a:hover {
+  background: #f5ece7;
+  color: #7a4c2e;
+}
+/* Sidenav lateral */
+.sidenav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 240px;
+  background: #fff;
+  box-shadow: 2px 0 16px rgba(0,0,0,0.10);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  z-index: 1100;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+}
+.sidenav.open {
+  transform: translateX(0);
+}
+.sidenav-header {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 16px 8px 0 8px;
+}
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 2.2rem;
+  color: #e53935;
+  outline: none;
+  z-index: 1102;
+  margin-right: 8px; /* Adiciona espaçamento à direita do X */
+}
+.close-x {
+  color: #e53935 !important;
+  font-size: 2.2rem;
+}
+.menu-btn .close-x {
+  color: #e53935 !important;
+}
+.sidenav a {
+  color: #aa826f;
+  padding: 16px 32px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.sidenav a.active,
+.sidenav a:hover {
+  background: #f5ece7;
+  color: #7a4c2e;
+  cursor: pointer;
+}
+.sidenav-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.18);
+  z-index: 1099;
+  display: block;
+}
+@media (max-width: 700px) {
+  .header {
+    flex-direction: row;
+    height: 64px;
+    padding: 0 6px;
   }
-  .header-menu {
+  .header-left {
+    flex: 0 0 auto;
+  }
+  .header-center {
     position: absolute;
-    top: 84px;
     left: 0;
     right: 0;
-    background: rgb(170, 130, 111); /* Marrom também no mobile */
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1rem 0.5rem;
-    z-index: 100;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    animation: menuDrop 0.2s;
-    /* Remove a animação antiga, pois agora usaremos transição */
+    top: 0;
+    bottom: 0;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    pointer-events: none;
   }
-  .header-menu.ng-animating-leave {
-    animation: menuClose 0.2s;
+  .header-center h1 {
+    font-size: 1.1rem;
+    padding: 0.2rem 0.7rem 0.2rem 0.7rem;
+    border-radius: 8px 0 0 8px;
+    max-width: 90vw;
+    pointer-events: auto;
+  }
+  .header-right img {
+    width: 46px;
+    height: 46px;
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+  .sidenav-header {
+    padding: 16px 8px 0 8px;
+  }
+  .close-btn {
+    margin-right: 8px;
   }
 }
-
-@keyframes menuDrop {
+@keyframes fadeInDown {
   from { opacity: 0; transform: translateY(-20px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes menuClose {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-20px); }
-}
-
-@media screen and (max-width: 600px) {
-    .header {
-        height: 64px;
-        padding: 0 8px;
-    }
-    h1 {
-        font-size: 26px;
-        margin-right: 8px;
-    }
-    img {
-        width: 54px;
-        height: 44px;
-    }
-    .header-menu {
-      top: 64px;
-      align-items: flex-start; /* Alinha itens à esquerda no menu mobile */
-    }
-}
-
-@media screen and (max-width: 410px) {
-    h1 {
-        font-size: 26px;
-        transition: 1s ease-in;
-    }
-
-    img {
-        width: 60px;
-        height: 50px;
-        transition: 1s ease-in;
-    }
-}
-
-@media screen and (max-width: 350px) {
-    h1 {
-        margin-left: 5px;
-        margin-right: 5px;
-    }
-
-    img {
-        margin-left: 5px;
-        margin-right: 5px;
-    }
-}
-
-@media screen and (max-width: 300px) {
-    img {
-        display: none;
-    }
-}
-
-/* Garante que o conteúdo principal não fique escondido atrás do header fixo */
-.main-content, .main-layout {
-  margin-top: 84px;
-}
-@media (max-width: 600px) {
-  .main-content, .main-layout {
-    margin-top: 64px;
-  }
-}
-
-@media (min-width: 901px) {
-  .header-menu {
-    flex-direction: row;
-    align-items: center;
-    gap: 1.2rem;
-    width: auto;
-  }
-  .header-menu a {
-    width: auto;
-    padding-left: 0;
-  }
 }
