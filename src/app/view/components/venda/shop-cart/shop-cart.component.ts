@@ -13,11 +13,14 @@ import { AssinadaService } from '../../../../services/assinada.service';
 import { Assinada } from '../../../../models/assinada';
 import { forkJoin, Observable, of } from 'rxjs';
 import { stat } from 'fs';
+import { FooterService } from '../../../../services/footer.service';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-shop-cart',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatProgressSpinnerModule],
+  imports: [CommonModule, FormsModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatProgressSpinnerModule, MatIconModule],
+  providers: [FooterService],
   templateUrl: './shop-cart.component.html',
   styleUrl: './shop-cart.component.css'
 })
@@ -55,7 +58,8 @@ export class ShopCartComponent implements OnInit {
     private carrinhoService: CarrinhoService,
     private refreshService: RefreshService,
     private cdr: ChangeDetectorRef, // Injetado ChangeDetectorRef
-    private assinadaService: AssinadaService
+    private assinadaService: AssinadaService,
+    private footerService: FooterService // Injetado FooterService
   ) {
     this.refreshService.refresh$.subscribe(() => {
       this.listarItensCarrinho();
@@ -132,18 +136,22 @@ export class ShopCartComponent implements OnInit {
               this.vendaId = id;
               // Opcional: carregar detalhes da venda se necessário
               // this.carregarDetalhesVenda(id);
+              this.footerService.updateFooter(); // Atualiza o footer sempre que o carrinho muda
             },
             error: (err) => {
               console.error('Erro ao obter venda aberta após listar itens:', err);
+              this.footerService.updateFooter(); // Atualiza mesmo em caso de erro
             }
           });
         } else {
           this.vendaId = null;
+          this.footerService.updateFooter(); // Atualiza o footer quando o carrinho fica vazio
         }
       },
       error: (err) => {
         console.error('Erro ao listar itens do carrinho:', err);
         this.carrinhoService.message('Erro ao listar itens do carrinho!', true);
+        this.footerService.updateFooter(); // Atualiza o footer em caso de erro
       }
     });
   }
@@ -176,22 +184,18 @@ export class ShopCartComponent implements OnInit {
     this.buscandoCliente = true;
     this.carrinhoService.buscarClientePorCpf(this.cpfCliente).subscribe({
       next: (cliente) => {
-        console.log('Cliente recebido do backend:', cliente); // Adicionado para depuração
-        // Preenche os campos com base no tipo de atendimento
         this.nomeCliente = cliente.nome;
         this.telefoneCliente = cliente.telefone;
         this.clienteId = cliente.id;
-
-        if (this.tipoAtendimento === 'RETIRADA') {
-          this.enderecoCliente = ''; // Endereço não é necessário para retirada
-        } else if (this.tipoAtendimento === 'ENTREGA') {
+        if (this.tipoAtendimento === 'ENTREGA') {
           this.enderecoCliente = cliente.endereco;
+        } else if (this.tipoAtendimento === 'RETIRADA') {
+          this.enderecoCliente = '';
         }
-
         this.clienteEncontrado = true;
         this.buscandoCliente = false;
         this.carrinhoService.message('Cliente encontrado e dados preenchidos com sucesso!');
-        this.cdr.detectChanges(); // Força a detecção de mudanças
+        this.cdr.detectChanges();
       },
       error: () => {
         this.carrinhoService.message('Cliente não encontrado. Por favor, cadastre-o na tela de clientes.', true);
@@ -200,9 +204,16 @@ export class ShopCartComponent implements OnInit {
         this.telefoneCliente = '';
         this.clienteEncontrado = false;
         this.buscandoCliente = false;
-        this.cdr.detectChanges(); // Força a detecção de mudanças também no erro
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  buscarCliente(): void {
+    // Implemente aqui a lógica de busca do cliente pelo CPF
+    // Exemplo: this.carrinhoService.buscarClientePorCpf(this.cpfCliente).subscribe(...)
+    // Por enquanto, apenas um log para debug
+    console.log('Buscar cliente pelo CPF:', this.cpfCliente);
   }
 
   /**
@@ -401,6 +412,36 @@ export class ShopCartComponent implements OnInit {
           console.error('Detalhes do erro do backend:', err.error);
         }
         this.carrinhoService.message('Erro ao finalizar a venda!', true);
+        this.finalizandoVenda = false;
+      }
+    });
+  }
+
+  solicitarPedido(): void {
+    // Reaproveita a lógica de finalizarVenda, mas apenas solicita o pedido (não finaliza, não gera comanda, não pede pagamento)
+    if (this.finalizandoVenda) return;
+    if (!this.vendaId || this.itensCarrinho.length === 0) {
+      this.carrinhoService.message('Adicione itens ao carrinho antes de solicitar o pedido.', true);
+      return;
+    }
+    if (!this.tipoAtendimento || (this.tipoAtendimento === 'MESA' && !this.mesa)) {
+      this.carrinhoService.message('Preencha o tipo de atendimento corretamente.', true);
+      return;
+    }
+    this.finalizandoVenda = true;
+    const payload = {
+      ...this.buildPayload(),
+      status: 'PENDENTE', // status aguardando aprovação do adm
+      finalizada: false
+    };
+    this.carrinhoService.finalizarVenda(this.vendaId, payload).subscribe({
+      next: () => {
+        this.carrinhoService.message('Pedido solicitado com sucesso! Aguarde aprovação.');
+        this.resetForm();
+        this.finalizandoVenda = false;
+      },
+      error: () => {
+        this.carrinhoService.message('Erro ao solicitar pedido!', true);
         this.finalizandoVenda = false;
       }
     });

@@ -1,26 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { trigger, transition, style, animate } from '@angular/animations';
+import { NgIf, NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [MatToolbarModule, CommonModule],
+  imports: [NgIf, NgClass],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
-  animations: [
-    trigger('menuAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(-20px)' }),
-        animate('200ms ease', style({ opacity: 1, transform: 'translateY(0)' }))
-      ]),
-      transition(':leave', [
-        animate('200ms ease', style({ opacity: 0, transform: 'translateY(-20px)' }))
-      ])
-    ])
-  ]
 })
 export class HeaderComponent implements OnInit {
   menuOpen = false;
@@ -68,9 +56,10 @@ export class HeaderComponent implements OnInit {
     this.menuOpen = false;
   }
   goLogin() {
-    this.router.navigate(['/']);
     this.menuOpen = false;
+    setTimeout(() => {
+      this.router.navigate(['/']);
+    }, 200);
   }
-
   ngOnInit() {}
 }

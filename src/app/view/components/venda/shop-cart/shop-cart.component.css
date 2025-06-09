@@ -4,6 +4,10 @@
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-bottom: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .carrinho-vazio {
@@ -579,4 +583,26 @@
         font-size: 0.9em; /* Reduz o tamanho da fonte do botão finalizar */
         padding: 10px 15px;
     }
+}
+
+/* Remove customizações do campo de CPF e botão de pesquisa */
+.cpf-field.mat-form-field,
+.cpf-field .mat-input-element,
+.cpf-field .mat-form-field-wrapper,
+.cpf-field .mat-form-field-flex,
+.cpf-field .mat-form-field-suffix .mat-icon-button,
+.cpf-field .mat-form-field-suffix .mat-icon-button:hover {
+  all: unset;
+}
+.cpf-field .mat-icon {
+  color: #b61c23;
+  font-size: 22px;
+}
+
+/* Garante responsividade e alinhamento em telas menores */
+@media (max-width: 900px) {
+  .cpf-field.mat-form-field {
+    min-width: 100%;
+    flex: 1 1 100%;
+  }
 }

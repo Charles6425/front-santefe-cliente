@@ -18,6 +18,5 @@
 - Evitar repetir código já existente
 
 ## Instruções para o que estamos trabalhando
-- Integrando as telas do cliente com o sidenav.
-- deixar o sidenav responsivo e no header para melhor experiência do usuário
-- manter o sidenav estatico com as outras telas para evitar problemas de responsividade
+- ajuste o botão de pesquisar para que ele fique alinhado com o campo de pesquisa
+- ajuste para que ele seja clicavel e faça a busca do cliente corretamente

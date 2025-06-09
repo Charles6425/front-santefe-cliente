@@ -1,58 +1,12 @@
 <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
-<div class="main-layout">
-    <main class="main-content">
-        <mat-card class="mat-elevation-z8">
-            <mat-card-content class="cardapio-title">
-                <h1>Sistema de Vendas</h1>
-            </mat-card-content>
-            <mat-card-content>
-                <div class="container-wrapper">
-                    <article class="find-categorias">
-                        <h2>Categorias</h2>
-                        <div class="category-container">
-
-                            <p *ngIf="categorias.length === 0">
-                                Sem categorias por aqui, você pode criar uma no menu de Categorias. <i
-                                    class='material-icons'>sentiment_dissatisfied</i>
-                            </p>
-
-                            <button class="category-button" *ngFor="let categoria of categorias">
-                                <span class="categoria-info">{{ categoria.descricao }}</span>
-                                <i class='bx bx-purchase-tag'
-                                    (click)="listarProdutosPorCategoria(categoria.id); $event.stopPropagation()"></i>
-                            </button>
-                        </div>
-                    </article>
-
-                    <article class="find-produtos-by-categoria">
-                        <h2>Produtos</h2>
-                        <div class="produto-container">
-
-                            <p *ngIf="!categoriaSelecionada && produtos.length === 0">
-                                Selecione uma categoria para buscar produtos. <i
-                                    class='material-icons'>notifications_none</i>
-                            </p>
-
-                            <p *ngIf="categoriaSelecionada && produtos.length === 0">
-                                Sem produtos registrados nessa categoria. <i
-                                    class='material-icons'>notifications_none</i>
-                            </p>
-
-                            <button class="produto-button" *ngFor="let produto of produtos">
-                                <span class="produto-info">
-                                    {{ produto.descricao }}
-                                    <i class='bx bx-cart-add' (click)="adicionarAoCarrinho(produto)"></i>
-                                </span>
-                            </button>
-                        </div>
-                    </article>
-                </div>
-
-                <article class="static-list">
-                    <app-shop-cart></app-shop-cart>
-                </article>
-            </mat-card-content>
-        </mat-card>
-    </main>
-</div>
+<mat-card class="mat-elevation-z8">
+    <mat-card-content class="cardapio-title">
+        <h1>Carrinho de Compras</h1>
+    </mat-card-content>
+    <mat-card-content>
+        <article class="static-list">
+            <app-shop-cart></app-shop-cart>
+        </article>
+    </mat-card-content>
+</mat-card>

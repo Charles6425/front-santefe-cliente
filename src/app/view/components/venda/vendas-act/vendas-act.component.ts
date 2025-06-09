@@ -29,7 +29,7 @@ export class VendasActComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.listarCategorias();
+    // Não carrega mais categorias/produtos para o cliente
   }
 
   listarCategorias(): void {
