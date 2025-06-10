@@ -13,10 +13,15 @@ html, body {
   align-items: center;
   justify-content: space-between;
   position: relative;
-  padding: 0 16px;
+  padding: 0; /* Removido padding lateral para alinhar aos cantos */
   height: 84px;
   min-height: 64px;
   overflow: visible;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  border-bottom: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 .header-left, .header-center, .header-right {
   display: flex;
@@ -71,10 +76,11 @@ html, body {
   .header {
     flex-direction: row;
     height: 64px;
-    padding: 0 6px;
+    padding: 0; /* Remove padding lateral também no mobile */
   }
   .header-left {
     flex: 0 0 auto;
+    margin-left: 6px;
   }
   .header-center {
     position: absolute;
@@ -100,6 +106,12 @@ html, body {
     margin-left: 8px;
     margin-right: 8px;
   }
+  .sidenav-header {
+    padding: 16px 8px 0 8px;
+  }
+  .close-btn {
+    margin-right: 8px;
+  }
 }
 .header {
   background: linear-gradient(90deg, #aa826f 0%, #b68a6a 50%, #a07a65 100%);
@@ -118,7 +130,12 @@ html, body {
 .header-left {
   display: flex;
   align-items: center;
-  margin-left: 0;
+  margin-left: 12px; /* Adiciona respiro à esquerda */
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  margin-right: 12px; /* Adiciona respiro à direita */
 }
 .menu-btn {
   background: none;
@@ -246,10 +263,14 @@ html, body {
   .header {
     flex-direction: row;
     height: 64px;
-    padding: 0 6px;
+    padding: 0; /* Remove padding lateral também no mobile */
   }
   .header-left {
     flex: 0 0 auto;
+    margin-left: 6px;
+  }
+  .header-right {
+    margin-right: 6px;
   }
   .header-center {
     position: absolute;
