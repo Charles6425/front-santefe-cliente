@@ -17,6 +17,18 @@
 - Entregar soluções antes de analisar o projeto como um todo e entender o que esta fazendo
 - Evitar repetir código já existente
 
+## O que esperar do seu código
+- Código limpo, organizado e de fácil manutenção
+- Css moderno, responsivo, sofisticado e minimalista
+- Mantenha a consistência com o estilo de código existente
+- Utilize boas práticas de desenvolvimento
+- Sempre comente o código quando necessário para explicar a lógica
+- Utilize nomes de variáveis e funções descritivos
+- Sempre verifique se o código está funcionando corretamente antes de enviar
+- Sempre verifique se o código está de acordo com as melhores práticas de acessibilidade e o que foi solicitado
+- Sempre verique se seu código afeta a regra de negócio do projeto e se faz sentido dentro do contexto do projeto
+
 ## Instruções para o que estamos trabalhando
-- ajuste o botão de pesquisar para que ele fique alinhado com o campo de pesquisa
-- ajuste para que ele seja clicavel e faça a busca do cliente corretamente
+- Vamos refatorar bastante coisa de frontend agora para garantir melhor performance e usabilidade
+- Tudo que o angular material interferir deve ser refeito a mão para melhor controle de css e usabilidade
+- Sempre deixe responsivo e tambem verifique se o design está de acordo com o que estamos esperando
