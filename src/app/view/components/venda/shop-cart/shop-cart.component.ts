@@ -212,10 +212,37 @@ export class ShopCartComponent implements OnInit {
   }
 
   buscarCliente(): void {
-    // Implemente aqui a lógica de busca do cliente pelo CPF
-    // Exemplo: this.carrinhoService.buscarClientePorCpf(this.cpfCliente).subscribe(...)
-    // Por enquanto, apenas um log para debug
-    console.log('Buscar cliente pelo CPF:', this.cpfCliente);
+    if (!this.cpfCliente || this.cpfCliente.length !== 11) {
+      this.carrinhoService.message('CPF inválido. Por favor, insira um CPF válido.', true);
+      return;
+    }
+
+    this.buscandoCliente = true;
+    this.carrinhoService.buscarClientePorCpf(this.cpfCliente).subscribe({
+      next: (cliente) => {
+        this.nomeCliente = cliente.nome;
+        this.telefoneCliente = cliente.telefone;
+        this.clienteId = cliente.id;
+        if (this.tipoAtendimento === 'ENTREGA') {
+          this.enderecoCliente = cliente.endereco;
+        } else if (this.tipoAtendimento === 'RETIRADA') {
+          this.enderecoCliente = '';
+        }
+        this.clienteEncontrado = true;
+        this.buscandoCliente = false;
+        this.carrinhoService.message('Cliente encontrado e dados preenchidos com sucesso!');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.carrinhoService.message('Cliente não encontrado. Por favor, cadastre-o na tela de clientes.', true);
+        this.nomeCliente = '';
+        this.enderecoCliente = '';
+        this.telefoneCliente = '';
+        this.clienteEncontrado = false;
+        this.buscandoCliente = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
 
