@@ -16,6 +16,8 @@ import { stat } from 'fs';
 import { FooterService } from '../../../../services/footer.service';
 import { MatIconModule } from '@angular/material/icon';
 import { PedidoService } from '../../../../services/pedido.service';
+import { ProdutoService } from '../../../../services/produto.service';
+import { Produto } from '../../../../models/produto';
 
 @Component({
   selector: 'app-shop-cart',
@@ -50,6 +52,7 @@ export class ShopCartComponent implements OnInit {
   clienteEncontrado = false;
   clienteId: number | null = null;
   status: string = 'Aberto'; // Status fixo para finalização
+  produtos: Produto[] = []; // Adicionada lista de produtos
 
   // Novo método para debug
   onHorarioRetiradaChange(value: string): void {
@@ -59,6 +62,7 @@ export class ShopCartComponent implements OnInit {
   constructor(
     private carrinhoService: CarrinhoService,
     private refreshService: RefreshService,
+    private produtoService: ProdutoService, // Injetado ProdutoService
     private cdr: ChangeDetectorRef, // Injetado ChangeDetectorRef
     private assinadaService: AssinadaService,
     private footerService: FooterService, // Injetado FooterService
@@ -71,6 +75,9 @@ export class ShopCartComponent implements OnInit {
 
   ngOnInit(): void {
     this.listarItensCarrinho();
+    this.produtoService.findAll().subscribe((produtos) => {
+      this.produtos = produtos;
+    });
   }
 
   adicionarPrimeiroItemAoCarrinho(item: ItemDTO): void {
@@ -249,18 +256,16 @@ export class ShopCartComponent implements OnInit {
 
 
 private buildPayload(): any {
-  // Formata os itens conforme esperado pelo backend
   const itensFormatados = this.itensCarrinho.map(item => ({
-    produtoId: item.produtoId,
-    quantidade: item.quantidade,
-    valorUnitario: item.valorUnitario
+    produtoId: item.produtoId ?? null,
+    quantidade: item.quantidade ?? null,
+    valorUnitario: item.valorUnitario ?? null
   }));
 
-  // Soma o valor total dos itens
   const valorTotal = itensFormatados.reduce((soma, item) => soma + (item.valorUnitario * item.quantidade), 0);
 
-  // Monta o payload principal conforme o contrato do backend
   const payload: any = {
+    clienteId: this.clienteId ?? null,
     valorTotal: valorTotal,
     status: 'PENDENTE',
     quantidadeItens: itensFormatados.length,
@@ -276,11 +281,6 @@ private buildPayload(): any {
     observacaoGeral: this.observacaoVenda || '',
     itens: itensFormatados
   };
-
-  // Só adiciona clienteId se existir
-  if (this.clienteId) {
-    payload.clienteId = this.clienteId;
-  }
 
   return payload;
 }
@@ -347,7 +347,6 @@ solicitarPedido(): void {
   const payload = {
     ...this.buildPayload(),
     status: 'PENDENTE', // status aguardando aprovação do adm
-    finalizada: false
   };
   console.log('JSON enviado para o backend:', JSON.stringify(payload, null, 2));
   this.pedidoService.create(payload).subscribe({
