@@ -16,6 +16,8 @@ import { stat } from 'fs';
 import { FooterService } from '../../../../services/footer.service';
 import { MatIconModule } from '@angular/material/icon';
 import { PedidoService } from '../../../../services/pedido.service';
+import { ProdutoService } from '../../../../services/produto.service';
+import { Produto } from '../../../../models/produto';
 
 @Component({
   selector: 'app-shop-cart',
@@ -40,6 +42,7 @@ export class ShopCartComponent implements OnInit {
   nomeCliente: string = '';
   enderecoCliente: string = '';
   telefoneCliente: string = '';
+  telefoneCliente2: string = '';
   nomeDesconto: string = '';
   nomeAcrescimo: string = '';
   observacaoVenda: string = '';
@@ -49,6 +52,7 @@ export class ShopCartComponent implements OnInit {
   clienteEncontrado = false;
   clienteId: number | null = null;
   status: string = 'Aberto'; // Status fixo para finalização
+  produtos: Produto[] = []; // Adicionada lista de produtos
 
   // Novo método para debug
   onHorarioRetiradaChange(value: string): void {
@@ -58,6 +62,7 @@ export class ShopCartComponent implements OnInit {
   constructor(
     private carrinhoService: CarrinhoService,
     private refreshService: RefreshService,
+    private produtoService: ProdutoService, // Injetado ProdutoService
     private cdr: ChangeDetectorRef, // Injetado ChangeDetectorRef
     private assinadaService: AssinadaService,
     private footerService: FooterService, // Injetado FooterService
@@ -70,6 +75,9 @@ export class ShopCartComponent implements OnInit {
 
   ngOnInit(): void {
     this.listarItensCarrinho();
+    this.produtoService.findAll().subscribe((produtos) => {
+      this.produtos = produtos;
+    });
   }
 
   adicionarPrimeiroItemAoCarrinho(item: ItemDTO): void {
@@ -247,45 +255,32 @@ export class ShopCartComponent implements OnInit {
 
 
 
-private buildPayload(status: string = 'FINALIZADA', finalizada: boolean = true): any {
-  // Formata os itens conforme esperado pelo backend
+private buildPayload(): any {
   const itensFormatados = this.itensCarrinho.map(item => ({
-    produto: { id: item.produtoId, nome: item.produto },
-    quantidade: item.quantidade,
-    valorUnitario: item.valorUnitario,
-    valorTotal: item.valorUnitario * item.quantidade,
-    valorAcrescimo: (item as any).valorAcrescimo || null,
-    valorDesconto: (item as any).valorDesconto || null,
-    observacao: item.observacao || null
+    produtoId: item.produtoId ?? null,
+    quantidade: item.quantidade ?? null,
+    valorUnitario: item.valorUnitario ?? null
   }));
 
-  // Soma o valor total dos itens
-  const valorTotal = itensFormatados.reduce((soma, item) => soma + (item.valorTotal || 0), 0);
+  const valorTotal = itensFormatados.reduce((soma, item) => soma + (item.valorUnitario * item.quantidade), 0);
 
-  // Monta o payload principal
   const payload: any = {
-    // id: this.vendaId ?? undefined,
+    clienteId: this.clienteId ?? null,
     valorTotal: valorTotal,
-    status,
-    finalizada,
-    dataVenda: new Date().toISOString(),
-    valorDesconto: this.valorDesconto || undefined,
-    valorAcrescimo: this.valorAcrescimo || undefined,
-    numeroMesa: this.tipoAtendimento === 'MESA' ? this.mesa ?? undefined : undefined,
-    formaPagamento: this.formaPagamento || undefined,
-    tipoAtendimento: this.tipoAtendimento || undefined,
-    cpfCliente: this.cpfCliente || undefined,
-    nomeCliente: (this.tipoAtendimento !== 'RETIRADA' && this.tipoAtendimento !== 'ENTREGA') ? (this.nomeCliente || undefined) : undefined,
-    enderecoCliente: (this.tipoAtendimento !== 'RETIRADA' && this.tipoAtendimento !== 'ENTREGA') ? (this.enderecoCliente || undefined) : undefined,
-    horarioRetirada: this.horarioRetirada ? this.toIsoDateTime(this.horarioRetirada) : undefined,
-    nomeAcrescimo: this.nomeAcrescimo || undefined,
-    nomeDesconto: this.nomeDesconto || undefined,
-    observacaoGeral: this.observacaoVenda || undefined,
+    status: 'PENDENTE',
+    quantidadeItens: itensFormatados.length,
+    numeroMesa: this.tipoAtendimento === 'MESA' ? String(this.mesa ?? '') : '',
+    formaPagamento: this.formaPagamento || '',
+    tipoAtendimento: this.tipoAtendimento || '',
+    cpfCliente: this.cpfCliente || '',
+    nomeCliente: this.nomeCliente || '',
+    enderecoCliente: this.enderecoCliente || '',
+    telefoneCliente: this.telefoneCliente || '',
+    telefoneCliente2: this.telefoneCliente2 || '',
+    horarioRetirada: this.horarioRetirada ? this.toIsoDateTime(this.horarioRetirada) : null,
+    observacaoGeral: this.observacaoVenda || '',
     itens: itensFormatados
   };
-
-  // Remove campos undefined do payload
-  Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
 
   return payload;
 }
@@ -352,8 +347,8 @@ solicitarPedido(): void {
   const payload = {
     ...this.buildPayload(),
     status: 'PENDENTE', // status aguardando aprovação do adm
-    finalizada: false
   };
+  console.log('JSON enviado para o backend:', JSON.stringify(payload, null, 2));
   this.pedidoService.create(payload).subscribe({
     next: () => {
       this.carrinhoService.message('Pedido solicitado com sucesso! Aguarde aprovação.');
