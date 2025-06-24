@@ -5,7 +5,7 @@ import { tap } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-    private apiUrl = 'http://localhost:8080/auth/login';
+    private apiUrl = 'http://localhost:8080/auth/login/cliente';
     private authState = new BehaviorSubject<boolean>(false);
     authState$ = this.authState.asObservable();
 
