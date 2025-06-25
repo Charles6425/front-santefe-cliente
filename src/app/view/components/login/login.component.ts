@@ -23,6 +23,7 @@ export class LoginComponent {
   constructor(private authService: AuthService, private router: Router) {}
 
   login(): void {
+    this.authService.logout(); // Limpa tokens antigos antes de novo login
     this.loading = true;
     this.error = '';
     this.authService.login(this.cpf, this.senha).subscribe({

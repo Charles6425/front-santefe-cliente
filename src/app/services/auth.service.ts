@@ -2,10 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-    private apiUrl = 'http://localhost:8080/auth/login/cliente';
+    private urlBase = environment.baseUrl;
+    private apiUrl = this.urlBase+'/auth/login/cliente';
     private authState = new BehaviorSubject<boolean>(false);
     authState$ = this.authState.asObservable();
 
@@ -50,5 +52,15 @@ export class AuthService {
         return new HttpHeaders({
             'Authorization': token ? `Bearer ${token}` : ''
         });
+    }
+
+    logout(): void {
+        const isBrowser = typeof window !== 'undefined' && !!window.localStorage;
+        if (isBrowser) {
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user_nome');
+            localStorage.removeItem('user_cpf');
+            this.updateAuthState();
+        }
     }
 }
