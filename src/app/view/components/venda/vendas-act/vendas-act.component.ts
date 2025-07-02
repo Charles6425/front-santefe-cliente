@@ -29,16 +29,19 @@ export class VendasActComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Não carrega mais categorias/produtos para o cliente
+    // Componente inicializado sem carregar categorias/produtos automaticamente
+    // O carregamento é feito sob demanda quando necessário
   }
 
   listarCategorias(): void {
+    // Carrega todas as categorias disponíveis
     this.categoriaService.findAll().subscribe((response) => {
       this.categorias = response;
     });
   }
 
   listarProdutosPorCategoria(categoriaId: number): void {
+    // Define a categoria selecionada e carrega seus produtos
     this.categoriaSelecionada = this.categorias.find(categoria => categoria.id === categoriaId) || null;
     this.produtoService.findAllByCategoria(categoriaId.toString()).subscribe((response) => {
       this.produtos = response;
@@ -46,8 +49,9 @@ export class VendasActComponent implements OnInit {
   }
 
   adicionarAoCarrinho(produto: Produto): void {
+    // Verifica se uma categoria foi selecionada antes de adicionar
     if (this.categoriaSelecionada) {
-      // categoriaId é obrigatório para o backend. Sempre inclua!
+      // Cria o item com todas as informações necessárias para o backend
       const novoItem: ItemDTO = {
         id: 0, // será ignorado pelo backend ao criar
         produto: produto.descricao,
@@ -59,9 +63,11 @@ export class VendasActComponent implements OnInit {
         valorTotal: parseFloat(produto.valor),
         observacao: ''
       };
-      console.log('Novo item:', novoItem);
+      
+      // Garante que existe uma venda aberta antes de adicionar o item
       this.carrinhoService.getVendaAberta().subscribe({
         next: () => {
+          // Adiciona o item ao carrinho
           this.carrinhoService.adicionar(novoItem).subscribe({
             next: () => {
               this.carrinhoService.message(`${produto.descricao} adicionado ao carrinho!`);
@@ -69,7 +75,6 @@ export class VendasActComponent implements OnInit {
             },
             error: (erro) => {
               this.carrinhoService.message('Erro ao adicionar item ao carrinho');
-              console.error(erro);
             }
           });
         },
