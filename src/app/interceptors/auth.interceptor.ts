@@ -9,10 +9,11 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-    constructor(private router: Router) { }
+    constructor(private router: Router, private authService: AuthService) { }
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         const isBrowser = typeof window !== 'undefined' && !!window.localStorage;
@@ -28,9 +29,8 @@ export class AuthInterceptor implements HttpInterceptor {
         return next.handle(authReq).pipe(
             catchError((error: HttpErrorResponse) => {
                 if (error.status === 401 && isBrowser) {
-                    localStorage.removeItem('jwt_token');
-                    localStorage.removeItem('user_nome');
-                    localStorage.removeItem('user_cpf');
+                    // Usar o método logout do AuthService para garantir que o estado seja atualizado
+                    this.authService.logout();
                     this.router.navigate(['/']);
                     setTimeout(() => window.location.href = '/', 100);
                 }

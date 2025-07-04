@@ -12,7 +12,7 @@ export class AuthService {
     authState$ = this.authState.asObservable();
 
     constructor(private http: HttpClient) {
-        this.updateAuthState();
+        this.checkTokenValidity(); // Verifica validade do token na inicialização
     }
 
     private hasToken(): boolean {
@@ -22,6 +22,30 @@ export class AuthService {
 
     updateAuthState(): void {
         this.authState.next(this.hasToken());
+    }
+
+    // Método para verificar se o token ainda é válido
+    // Se houver problemas com o token, faz logout automaticamente
+    checkTokenValidity(): void {
+        const token = this.getToken();
+        if (!token) {
+            this.authState.next(false);
+            return;
+        }
+        // Verificação básica se o token não está expirado (se for JWT)
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const now = Date.now() / 1000;
+            if (payload.exp && payload.exp < now) {
+                this.logout();
+                return;
+            }
+        } catch (error) {
+            // Se não conseguir decodificar o token, considera inválido
+            this.logout();
+            return;
+        }
+        this.authState.next(true);
     }
 
     login(cpf: string, senha: string): Observable<any> {
