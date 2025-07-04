@@ -40,9 +40,16 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
+    // Força verificação do token na inicialização
+    this.authService.checkTokenValidity();
+    
     this.authSub = this.authService.authState$.subscribe(state => {
       this.isAuth = state;
-      // loading já está false após o construtor
+      // Se o usuário não estiver autenticado e não estiver na página de login,
+      // redireciona para login
+      if (!state && this.router.url !== '/') {
+        this.router.navigate(['/']);
+      }
     });
   }
 

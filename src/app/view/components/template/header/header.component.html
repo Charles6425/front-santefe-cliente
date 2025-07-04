@@ -1,26 +1,29 @@
-<!-- Header com apenas um botão X dentro do sidenav -->
+<!-- Header refatorado: Logout | Logo + Nome | Carrinho/Home -->
 <header class="header">
+  <!-- Esquerda: Ícone de logout -->
   <div class="header-left">
-    <button class="menu-btn" (click)="toggleMenu()" aria-label="Abrir menu" *ngIf="!menuOpen">
-      <i class='bx bx-menu'></i>
+    <button class="nav-btn logout-btn" (click)="logout()" aria-label="Fazer logout">
+      <i class='bx bx-log-out'></i>
     </button>
   </div>
+
+  <!-- Centro: Logo + Nome do restaurante -->
   <div class="header-center">
-    <h1>Restaurante Santa Fé</h1>
-  </div>
-  <div class="header-right">
-    <img src="/assets/logo.png" alt="Logo do Restaurante" />
-  </div>
-  <!-- Sidenav lateral -->
-  <nav class="sidenav" [class.open]="menuOpen">
-    <div class="sidenav-header">
-      <button class="close-btn" (click)="toggleMenu()" aria-label="Fechar menu">
-        <i class='bx bx-x close-x'></i>
-      </button>
+    <div class="brand-container">
+      <img src="/assets/logo.png" alt="Logo do Restaurante" class="brand-logo" />
+      <h1 class="brand-name">Restaurante Santa Fé</h1>
     </div>
-    <a (click)="goHome()" [ngClass]="{ 'active': isActive('/home') }"><i class='bx bx-home'></i> Home</a>
-    <a (click)="goVendas()" [ngClass]="{ 'active': isActive('/vendas') }"><i class='bx bx-cart'></i> Carrinho</a>
-    <a (click)="goLogin()"><i class='bx bx-log-out'></i> Sair</a>
-  </nav>
-  <div *ngIf="menuOpen" class="sidenav-backdrop" (click)="toggleMenu()"></div>
+  </div>
+
+  <!-- Direita: Ícone dinâmico (carrinho/home) -->
+  <div class="header-right">
+    <button class="nav-btn dynamic-btn" (click)="toggleNavigation()"
+      [attr.aria-label]="isCartPage() ? 'Ir para Home' : 'Ir para Carrinho'">
+      <i class="dynamic-icon" [ngClass]="isCartPage() ? 'bx bx-home' : 'bx bx-cart'"></i>
+      <!-- Badge de quantidade (quando for carrinho) -->
+      <span *ngIf="!isCartPage() && cartItemCount > 0" class="cart-badge">
+        {{ cartItemCount }}
+      </span>
+    </button>
+  </div>
 </header>

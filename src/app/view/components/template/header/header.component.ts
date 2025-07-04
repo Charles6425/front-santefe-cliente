@@ -1,65 +1,94 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { NgIf, NgClass } from '@angular/common';
+import { AuthService } from '../../../../services/auth.service';
+import { CarrinhoService } from '../../../../services/carrinho.service';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { ItemDTO } from '../../../../models/item-dto';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [NgIf, NgClass],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.css',
+  styleUrls: ['./header.component.css'],
 })
-export class HeaderComponent implements OnInit {
-  menuOpen = false;
+export class HeaderComponent implements OnInit, OnDestroy {
+  cartItemCount = 0;
+  currentRoute = '';
+  private subscriptions: Subscription[] = [];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router, 
+    private authService: AuthService,
+    private carrinhoService: CarrinhoService
+  ) {}
 
-  isActive(route: string): boolean {
-    return this.router.url.startsWith(route);
+  ngOnInit(): void {
+    // Observa mudanças na rota atual
+    const routerSub = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        this.currentRoute = event.url;
+      });
+    this.subscriptions.push(routerSub);
+
+    // Observa mudanças no carrinho em tempo real
+    const cartSub = this.carrinhoService.getCartItemCount().subscribe(count => {
+      this.cartItemCount = count;
+    });
+    this.subscriptions.push(cartSub);
+
+    // Define rota inicial
+    this.currentRoute = this.router.url;
   }
 
-  toggleMenu() {
-    this.menuOpen = !this.menuOpen;
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  goHome() {
-    this.router.navigate(['/home']);
-    this.menuOpen = false;
+  /**
+   * Verifica se a página atual é a do carrinho
+   */
+  isCartPage(): boolean {
+    return this.currentRoute.includes('/vendas');
   }
-  goCategoria() {
-    this.router.navigate(['/categorias']);
-    this.menuOpen = false;
+
+  /**
+   * Navegação dinâmica entre carrinho e home
+   */
+  toggleNavigation(): void {
+    if (!this.authService.isLoggedIn()) {
+      this.logout();
+      return;
+    }
+
+    if (this.isCartPage()) {
+      // Se está no carrinho, vai para home
+      this.router.navigate(['/home']);
+    } else {
+      // Se está em qualquer outra página, vai para carrinho
+      this.router.navigate(['/vendas']);
+    }
   }
-  goProduto() {
-    this.router.navigate(['/produtos']);
-    this.menuOpen = false;
-  }
-  goVendas() {
-    this.router.navigate(['/vendas']);
-    this.menuOpen = false;
-  }
-  goRelatorios() {
-    this.router.navigate(['/relatorios']);
-    this.menuOpen = false;
-  }
-  goAssinadas() {
-    this.router.navigate(['/assinadas']);
-    this.menuOpen = false;
-  }
-  goUsuario() {
-    this.router.navigate(['/usuarios']);
-    this.menuOpen = false;
-  }
-  goCliente() {
-    this.router.navigate(['/clientes']);
-    this.menuOpen = false;
-  }
-  goLogin() {
-    this.menuOpen = false;
+
+  /**
+   * Faz logout do usuário
+   */
+  logout(): void {
+    this.authService.logout();
     setTimeout(() => {
       this.router.navigate(['/']);
     }, 200);
   }
-  ngOnInit() {}
+
+  /**
+   * Método público para atualizar contagem do carrinho
+   * Pode ser chamado por outros componentes quando itens são adicionados/removidos
+   */
+  refreshCartCount(): void {
+    this.carrinhoService.refreshCartItems();
+  }
 }
