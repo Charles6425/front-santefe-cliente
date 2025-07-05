@@ -9,22 +9,19 @@
 - Resumindo temos dois frontends, um para os usuarios do sistema ( quem trabalha no restaurante ).
 - E esse nosso é o dos clientes ( quem faz o pedido ).
 - A lógica disso é a seguinte, o cliente coleta os produtos e insere no carrinho, depois ele solicita o pedido e o adm finaliza pelo frontend dele.
-- Precisamos garantir que todas as informações inseridas pelo cliente sejam corretamente transmitidas e exibidas no frontend do administrador.
-- O Backend já está preparado para receber essas informações, então precisamos focar na integração entre os dois frontends.
 
 ## O que precisamos fazer
-- IDEIA: Mudar a maneira de comportamento do navbar.
-- PORQUE ? precisamos deixar o icone do carrinho de compras mais visível e acessível.
-- COMO ? Em vez de ter o icone de lll deitado como se fosse um menu, vamos ter dois icones sempre(mesmo sendo 3, vou explicar a ideia abaixo).
+- Vou anexar uma foto para você usar de base.
+- vamos refatorar todo o visual do projeto e modernizar ele com base nessa imagem.
+- Lembre-se que estamos com uma aplicação para clientes então ele deve ser extremamente responsiva e otimizada principalmente para dispositivos móveis.
 
-1. O primeiro icone sera o do carrinho de compras, que ao ser clicado, levará o usuário para a página do carrinho. (icone alinhado a direita da página).
-2. O o icone de logout, que ao ser clicado, levará o usuário para a tela de login removendo o token da maneira que já fazemos (icone alinhado a esquerda da página).
-3. Quanto a logo do restaurante que temos na direita nesse momento, vamos coloca-la do lado do nome - bem no meio do header, alinhada ao centro.
+1. Análise a imagem e comece a refatorar.
+2. Você jamais deve quebrar a lógica do código existente, apenas refatorar o visual e a estrutura.
 
-4. ATENÇÃO: Quando o usuário estiver no carrinho de compras, o icone do carrinho deve virar o icone home e quando estiver no home ele deve virar o icone do carrinho de compras. (fica bem interativo e facilita na responsividade)
-5. Deixe tudo responsivo e funcional. (atualmente os links estão todos funcionando, vamos apenas mudar os icones de lugar e a lógica de exibição deles).
-
-
+ATENÇÃO:
+- A ideia dos botões de logout e carrinho/home mantenha, pode deixar mais bonito e moderno mas essa ideia esta ótima.
+- O footer pode melhorar mas lembre-se de sempre deixar ele responsivo e pequeno também para não atrapalhar a visualização do conteúdo principal.
+- O restante pode refatorar tudo. (Header, footer, tela home, tela de login vou deixar com você outro exemplo de tela que pode ser usada como base, tela do carrinho e faça o seu melhor).
 
 ## Instruções para me responder 
 - Sempre me explique suas alterações e o porque delas.

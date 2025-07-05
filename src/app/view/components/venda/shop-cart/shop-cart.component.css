@@ -620,3 +620,28 @@
     flex: 1 1 100%;
   }
 }
+
+/* Estilos para mensagens informativas */
+.info-entrega, .info-retirada {
+    background-color: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.tempo-estimado, .escolha-horario {
+    margin: 0;
+    color: #1976d2;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.info-retirada {
+    background-color: #fff3e0;
+    border-left-color: #ff9800;
+}
+
+.info-retirada .escolha-horario {
+    color: #f57c00;
+}

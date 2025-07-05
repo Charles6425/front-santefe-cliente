@@ -53,10 +53,46 @@ export class ShopCartComponent implements OnInit {
   status: string = 'Aberto';
   produtos: Produto[] = [];
 
-  // Método para manipular mudanças no horário de retirada
+  // Método para manipular mudanças no horário de retirada com validação
   onHorarioRetiradaChange(value: string): void {
     // Atualiza o valor do horário de retirada quando o usuário modifica o campo
     this.horarioRetirada = value;
+    
+    // Validação do formato HH:mm
+    if (value && !this.isValidTimeFormat(value)) {
+      this.carrinhoService.message('Formato de horário inválido. Use HH:mm (ex: 14:30)', true);
+    }
+  }
+
+  // Valida se o horário está no formato HH:mm e é um horário válido
+  private isValidTimeFormat(time: string): boolean {
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return timeRegex.test(time);
+  }
+
+  // Converte horário HH:mm para HH:mm:ss
+  private formatTimeToHHmmss(time: string): string {
+    if (!time) return '';
+    
+    // Se já está no formato HH:mm:ss, retorna como está
+    if (/^\d{2}:\d{2}:\d{2}$/.test(time)) {
+      return time;
+    }
+    
+    // Se está no formato HH:mm, adiciona :00
+    if (/^\d{2}:\d{2}$/.test(time)) {
+      return time + ':00';
+    }
+    
+    // Se está no formato H:mm ou H:m, normaliza para HH:mm:ss
+    const parts = time.split(':');
+    if (parts.length === 2) {
+      const hours = parts[0].padStart(2, '0');
+      const minutes = parts[1].padStart(2, '0');
+      return `${hours}:${minutes}:00`;
+    }
+    
+    return time;
   }
 
   constructor(
@@ -302,58 +338,18 @@ export class ShopCartComponent implements OnInit {
       enderecoCliente: this.enderecoCliente || '',
       telefoneCliente: this.telefoneCliente || '',
       telefoneCliente2: this.telefoneCliente2 || '',
-      horarioRetirada: this.horarioRetirada ? this.toIsoDateTime(this.horarioRetirada) : null,
       observacaoGeral: this.observacaoVenda || '',
       itens: itensFormatados
     };
 
+    // Adiciona horarioRetirada APENAS para tipo RETIRADA
+    if (this.tipoAtendimento === 'RETIRADA' && this.horarioRetirada) {
+      payload.horarioRetirada = this.formatTimeToHHmmss(this.horarioRetirada);
+    }
+
+    console.log('Payload construído:', payload); // Log para debug
+
     return payload;
-  }
-
-
-
-  /**
-   * Converte horário para o formato esperado pelo backend: 'dd/MM/yyyy HH:mm:ss'.
-   * Aceita entradas como '18:30', '2025-05-18T11:00', '2025-05-18T11:00:00', 'dd/MM/yyyy HH:mm', etc.
-   * Sempre retorna com segundos incluídos.
-   */
-  private toIsoDateTime(time: string): string {
-    if (!time) return '';
-
-    // Formato ISO: YYYY-MM-DDTHH:mm ou YYYY-MM-DDTHH:mm:ss
-    const isoRegex = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/;
-    const isoMatch = time.match(isoRegex);
-    if (isoMatch) {
-      const [_, yyyy, mm, dd, hh, min, ss] = isoMatch;
-      return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss ? ss : '00'}`;
-    }
-
-    // Formato brasileiro com segundos: DD/MM/YYYY HH:mm:ss
-    const brWithSecRegex = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})$/;
-    if (brWithSecRegex.test(time)) {
-      return time;
-    }
-
-    // Formato brasileiro sem segundos: DD/MM/YYYY HH:mm
-    const brNoSecRegex = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/;
-    const brNoSecMatch = time.match(brNoSecRegex);
-    if (brNoSecMatch) {
-      const [_, dd, mm, yyyy, hh, min] = brNoSecMatch;
-      return `${dd}/${mm}/${yyyy} ${hh}:${min}:00`;
-    }
-
-    // Apenas hora:minuto (ex: '18:30') - usa a data atual
-    if (/^\d{2}:\d{2}$/.test(time)) {
-      const today = new Date();
-      const [hour, minute] = time.split(':');
-      const dd = String(today.getDate()).padStart(2, '0');
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const yyyy = today.getFullYear();
-      return `${dd}/${mm}/${yyyy} ${hour}:${minute}:00`;
-    }
-
-    // Se o formato não for reconhecido, retorna a string original
-    return time;
   }
 
 
@@ -370,6 +366,34 @@ export class ShopCartComponent implements OnInit {
     if (!this.tipoAtendimento || (this.tipoAtendimento === 'MESA' && !this.mesa)) {
       this.carrinhoService.message('Preencha o tipo de atendimento corretamente.', true);
       return;
+    }
+    
+    // Validações específicas para RETIRADA
+    if (this.tipoAtendimento === 'RETIRADA') {
+      if (!this.cpfCliente) {
+        this.carrinhoService.message('CPF do cliente é obrigatório para retirada.', true);
+        return;
+      }
+      if (!this.horarioRetirada) {
+        this.carrinhoService.message('Horário de retirada é obrigatório.', true);
+        return;
+      }
+      if (!this.isValidTimeFormat(this.horarioRetirada)) {
+        this.carrinhoService.message('Formato de horário inválido. Use HH:mm (ex: 14:30)', true);
+        return;
+      }
+    }
+    
+    // Validações específicas para ENTREGA
+    if (this.tipoAtendimento === 'ENTREGA') {
+      if (!this.cpfCliente) {
+        this.carrinhoService.message('CPF do cliente é obrigatório para entrega.', true);
+        return;
+      }
+      if (!this.enderecoCliente) {
+        this.carrinhoService.message('Endereço é obrigatório para entrega.', true);
+        return;
+      }
     }
     
     this.finalizandoVenda = true;
@@ -415,8 +439,11 @@ export class ShopCartComponent implements OnInit {
     this.nomeCliente = '';
     this.enderecoCliente = '';
     this.telefoneCliente = '';
+    this.telefoneCliente2 = '';
     this.horarioEntrega = '';
     this.horarioRetirada = '';
+    this.clienteEncontrado = false;
+    this.clienteId = null;
   }
 
 
@@ -508,9 +535,25 @@ export class ShopCartComponent implements OnInit {
       this.carrinhoService.message('CPF do cliente é obrigatório para entrega ou retirada.', true);
       return;
     }
-    if (this.tipoAtendimento === 'RETIRADA' && !this.horarioRetirada) {
-      this.carrinhoService.message('Horário de retirada é obrigatório para retirada.', true);
-      return;
+    
+    // Validações específicas para RETIRADA
+    if (this.tipoAtendimento === 'RETIRADA') {
+      if (!this.horarioRetirada) {
+        this.carrinhoService.message('Horário de retirada é obrigatório.', true);
+        return;
+      }
+      if (!this.isValidTimeFormat(this.horarioRetirada)) {
+        this.carrinhoService.message('Formato de horário inválido. Use HH:mm (ex: 14:30)', true);
+        return;
+      }
+    }
+    
+    // Validações específicas para ENTREGA
+    if (this.tipoAtendimento === 'ENTREGA') {
+      if (!this.enderecoCliente) {
+        this.carrinhoService.message('Endereço é obrigatório para entrega.', true);
+        return;
+      }
     }
     if (this.valorDesconto && !this.nomeDesconto) {
       this.carrinhoService.message('Nome do desconto é obrigatório quando há valor de desconto.', true);
@@ -536,8 +579,15 @@ export class ShopCartComponent implements OnInit {
     this.finalizandoVenda = true;
     const payload = this.buildPayload();
 
-    // Envia o pedido para criação
-    this.pedidoService.create(payload).subscribe({
+    // Verifica se há uma venda aberta para finalizar
+    if (!this.vendaId) {
+      this.carrinhoService.message('Nenhuma venda aberta para finalizar!', true);
+      this.finalizandoVenda = false;
+      return;
+    }
+
+    // Finaliza a venda existente usando o CarrinhoService
+    this.carrinhoService.finalizarVenda(this.vendaId, payload).subscribe({
       next: (res) => {
         this.carrinhoService.message('Pedido criado com sucesso!');
         this.limparCarrinho(() => {
@@ -546,6 +596,7 @@ export class ShopCartComponent implements OnInit {
         });
       },
       error: (err) => {
+        console.error('Erro ao finalizar venda:', err);
         this.carrinhoService.message('Erro ao criar pedido!', true);
         this.finalizandoVenda = false;
       }
