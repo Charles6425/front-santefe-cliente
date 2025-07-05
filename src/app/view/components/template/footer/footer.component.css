@@ -1,15 +1,29 @@
-/* Refatoração: removido reset global, simplificado espaçamentos, removido .footer-links, melhorado responsividade e contraste */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+/* ========== FOOTER MODERNO ========== */
 .footer {
   width: 100%;
-  background: linear-gradient(90deg, #aa826f 0%, #b61c23 100%);
+  background: linear-gradient(135deg, #8b5a3c 0%, #6d4c41 100%);
   color: #fff;
-  box-shadow: 0 -1px 4px rgba(0,0,0,0.03);
+  box-shadow: 0 -4px 20px rgba(139, 90, 60, 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0;
-  min-height: 44px;
+  min-height: 60px;
   font-family: 'Poppins', Arial, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 }
 
 .footer-content {
@@ -17,8 +31,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 8px 4px 8px;
+  padding: 16px 12px 8px 12px;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
 .footer-row,
@@ -27,74 +43,187 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 8px 0 2px 0;
-  gap: 0.5rem;
+  padding: 0;
+  margin-bottom: 12px;
 }
 
+/* ========== REDES SOCIAIS ========== */
 .footer-social {
   display: flex;
-  gap: 1rem; /* gap aumentado para melhor espaçamento entre os ícones */
+  gap: 16px;
   align-items: center;
   justify-content: center;
 }
+
 .footer-social-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.10);
+  background: rgba(255, 255, 255, 0.15);
   color: #fff;
-  font-size: 1.1rem;
-  transition: background 0.2s, color 0.2s, transform 0.2s;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  font-size: 1.3rem;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
 }
-.footer-social-btn:hover {
-  background: #fff;
-  color: #b61c23;
-  transform: scale(1.08);
-}
-.footer-social-btn.whatsapp:hover { color: #25d366; }
-.footer-social-btn.instagram:hover { color: #fd1d1d; }
-.footer-social-btn.facebook:hover { color: #1877f2; }
 
-.footer-divider {
+.footer-social-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  transform: translate(-50%, -50%);
+}
+
+.footer-social-btn:hover::before {
   width: 100%;
+  height: 100%;
+}
+
+.footer-social-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-3px) scale(1.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.footer-social-btn:active {
+  transform: translateY(-1px) scale(1.05);
+}
+
+/* Cores específicas para cada rede social */
+.footer-social-btn.whatsapp:hover {
+  color: #25d366;
+  border-color: #25d366;
+}
+
+.footer-social-btn.instagram:hover {
+  color: #e4405f;
+  border-color: #e4405f;
+}
+
+.footer-social-btn.tiktok:hover {
+  color: #000;
+  border-color: #000;
+}
+
+.footer-social-btn.facebook:hover {
+  color: #1877f2;
+  border-color: #1877f2;
+}
+
+/* ========== DIVISOR ========== */
+.footer-divider {
+  width: 80%;
   height: 1px;
-  background: rgba(255,255,255,0.10);
-  margin: 0 0 4px 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  margin: 0 0 12px 0;
   border: none;
 }
 
+/* ========== COPYRIGHT ========== */
 .footer-copy {
   text-align: center;
-  font-size: 0.85rem;
-  font-weight: 400;
-  letter-spacing: 0.3px;
-  color: #fff;
-  padding-bottom: 2px;
-  opacity: 0.92;
+  font-size: 0.8rem;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0 8px;
+  line-height: 1.4;
+  margin: 0;
 }
 
-@media (max-width: 600px) {
+/* ========== RESPONSIVIDADE ========== */
+@media (max-width: 768px) {
+  .footer {
+    min-height: 56px;
+  }
+  
   .footer-content {
-    padding: 0 2px 2px 2px;
+    padding: 14px 10px 6px 10px;
   }
-  .footer-row,
-  .footer-row--center {
-    gap: 0.3rem;
-    padding: 4px 0 2px 0;
+  
+  .footer-social {
+    gap: 14px;
   }
+  
+  .footer-social-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  .footer-copy {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    min-height: 52px;
+  }
+  
+  .footer-content {
+    padding: 12px 8px 4px 8px;
+  }
+  
+  .footer-social {
+    gap: 12px;
+  }
+  
+  .footer-social-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+  
   .footer-copy {
     font-size: 0.7rem;
-    padding-bottom: 1px;
+    padding: 0 4px;
+  }
+  
+  .footer-row,
+  .footer-row--center {
+    margin-bottom: 10px;
+  }
+  
+  .footer-divider {
+    margin: 0 0 10px 0;
   }
 }
 
+/* ========== ESTADOS ESPECIAIS ========== */
 .footer--fixed {
   position: fixed;
   left: 0;
   bottom: 0;
   z-index: 100;
+}
+
+/* ========== ACESSIBILIDADE ========== */
+@media (prefers-reduced-motion: reduce) {
+  .footer-social-btn,
+  .footer-social-btn::before {
+    transition: none;
+  }
+}
+
+.footer-social-btn:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 2px;
+}
+
+.footer-social-btn:focus:not(:focus-visible) {
+  outline: none;
 }

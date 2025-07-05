@@ -1,118 +1,282 @@
-<div class="carrinho-container">
-    <div *ngIf="itensCarrinho.length === 0" class="carrinho-vazio">
-        <p>Carrinho vazio <i class='bx bx-cart'></i></p>
+<div class="cart-container">
+  <!-- Estado vazio do carrinho -->
+  <div *ngIf="itensCarrinho.length === 0" class="empty-cart">
+    <div class="empty-icon">
+      <i class='bx bx-cart'></i>
     </div>
-    <div *ngFor="let item of itensCarrinho" class="carrinho-item">
-        <div class="item-info">
-            <span class="item-nome">{{ item.produto }}</span>
-            <span class="item-categoria">{{ item.categoria }}</span>
-            <span class="item-valor">R$ {{ item.valorTotal.toFixed(2) }}</span>
-            <span class="item-observacao" *ngIf="item.observacao">Obs: {{ item.observacao }}</span>
-        </div>
-        <div class="item-controles">
-            <button class="qtd-btn" (click)="alterarQuantidade(item.id, item.quantidade - 1)"
-                [disabled]="item.quantidade <= 1">
-                <i class='bx bx-minus'></i>
-            </button>
-            <span class="quantidade">{{ item.quantidade }}</span>
-            <button class="qtd-btn" (click)="alterarQuantidade(item.id, item.quantidade + 1)">
-                <i class='bx bx-plus'></i>
-            </button>
-            <button class="remover-btn" (click)="removerItem(item.id)">
-                <i class='bx bx-trash'></i>
-            </button>
-        </div>
+    <h3 class="empty-title">Carrinho vazio</h3>
+    <p class="empty-message">Adicione produtos do cardápio para começar seu pedido</p>
+  </div>
+
+  <!-- Header do carrinho com itens -->
+  <div *ngIf="itensCarrinho.length > 0" class="cart-header">
+    <div class="cart-title">
+      <i class='bx bx-cart'></i>
+      <h3>Carrinho de Compras</h3>
     </div>
-    <div *ngIf="itensCarrinho.length > 0" class="carrinho-footer">
-        <div class="total-container">
-            <span class="total-label">Total:</span>
-            <span class="total-valor">R$ {{ totalCarrinho.toFixed(2) }}</span>
+    <span class="items-count">{{ itensCarrinho.length }} item(s)</span>
+  </div>
+
+  <!-- Lista de itens do carrinho -->
+  <div *ngIf="itensCarrinho.length > 0" class="cart-items">
+    <div *ngFor="let item of itensCarrinho" class="cart-item">
+      <div class="item-details">
+        <h4 class="item-name">{{ item.produto }}</h4>
+        <span class="item-category">{{ item.categoria }}</span>
+        <div class="item-price">R$ {{ item.valorTotal.toFixed(2) }}</div>
+        <p *ngIf="item.observacao" class="item-note">
+          <i class='bx bx-note'></i>
+          {{ item.observacao }}
+        </p>
+      </div>
+      
+      <div class="item-actions">
+        <div class="quantity-controls">
+          <button 
+            class="qty-btn minus" 
+            (click)="alterarQuantidade(item.id, item.quantidade - 1)"
+            [disabled]="item.quantidade <= 1"
+            aria-label="Diminuir quantidade">
+            <i class='bx bx-minus'></i>
+          </button>
+          <span class="quantity">{{ item.quantidade }}</span>
+          <button 
+            class="qty-btn plus" 
+            (click)="alterarQuantidade(item.id, item.quantidade + 1)"
+            aria-label="Aumentar quantidade">
+            <i class='bx bx-plus'></i>
+          </button>
         </div>
-        <form #finalizaForm="ngForm" (ngSubmit)="solicitarPedido()" autocomplete="off">
-            <div class="form-row">
-                <mat-form-field class="tipo-atendimento-field">
-                    <mat-label>Tipo de Atendimento</mat-label>
-                    <mat-select [(ngModel)]="tipoAtendimento" name="tipoAtendimento" required>
-                        <mat-option value="MESA">Mesa</mat-option>
-                        <mat-option value="BALCAO">Balcão</mat-option>
-                        <mat-option value="ENTREGA">Entrega</mat-option>
-                        <mat-option value="RETIRADA">Retirada</mat-option>
-                    </mat-select>
-                </mat-form-field>
-                <ng-container *ngIf="tipoAtendimento === 'MESA'">
-                    <mat-form-field class="mesa-field">
-                        <mat-label>Nº Mesa</mat-label>
-                        <input matInput type="number" [(ngModel)]="mesa" name="mesa" placeholder="Número da mesa"
-                            required min="1">
-                    </mat-form-field>
-                </ng-container>
-                <ng-container *ngIf="tipoAtendimento === 'ENTREGA'">
-                    <div class="info-entrega">
-                        <p class="tempo-estimado">⏱️ Tempo estimado de entrega: de 30 minutos a 1 hora</p>
-                    </div>
-                    <mat-form-field class="cpf-field">
-                        <mat-label>CPF do Cliente*</mat-label>
-                        <input matInput [(ngModel)]="cpfCliente" name="cpfClienteEntrega" maxlength="11" minlength="11" required placeholder="CPF do Cliente">
-                        <button mat-icon-button matSuffix color="primary" type="button" aria-label="Pesquisar CPF" (click)="buscarCliente()" [disabled]="buscandoCliente || !cpfCliente || cpfCliente.length !== 11">
-                            <mat-icon>search</mat-icon>
-                        </button>
-                    </mat-form-field>
-                    <mat-form-field class="endereco-field">
-                        <mat-label>Endereço para Entrega</mat-label>
-                        <input matInput [(ngModel)]="enderecoCliente" name="enderecoCliente" required placeholder="Endereço completo">
-                    </mat-form-field>
-                    <mat-form-field class="nome-field" *ngIf="nomeCliente">
-                        <mat-label>Nome do Cliente</mat-label>
-                        <input matInput [(ngModel)]="nomeCliente" name="nomeCliente" readonly>
-                    </mat-form-field>
-                    <mat-form-field class="telefone-field" *ngIf="telefoneCliente">
-                        <mat-label>Telefone</mat-label>
-                        <input matInput [(ngModel)]="telefoneCliente" name="telefoneCliente" readonly>
-                    </mat-form-field>
-                </ng-container>
-                <ng-container *ngIf="tipoAtendimento === 'RETIRADA'">
-                    <div class="info-retirada">
-                        <p class="escolha-horario">🕐 Escolha o horário para retirada (hoje)</p>
-                    </div>
-                    <mat-form-field class="cpf-field">
-                        <mat-label>CPF do Cliente*</mat-label>
-                        <input matInput [(ngModel)]="cpfCliente" name="cpfCliente" maxlength="11" minlength="11" required placeholder="CPF do Cliente">
-                        <button mat-icon-button matSuffix color="primary" type="button" aria-label="Pesquisar CPF" (click)="buscarClientePorCpf()" [disabled]="buscandoCliente || !cpfCliente || cpfCliente.length !== 11">
-                            <mat-icon>search</mat-icon>
-                        </button>
-                    </mat-form-field>
-                    <mat-form-field class="horario-retirada-field">
-                        <mat-label>Horário para Retirada*</mat-label>
-                        <input matInput [(ngModel)]="horarioRetirada" name="horarioRetirada" required type="time" (ngModelChange)="onHorarioRetiradaChange($event)" placeholder="HH:mm">
-                    </mat-form-field>
-                    <mat-form-field class="nome-field" *ngIf="nomeCliente">
-                        <mat-label>Nome do Cliente</mat-label>
-                        <input matInput [(ngModel)]="nomeCliente" name="nomeCliente" readonly>
-                    </mat-form-field>
-                    <mat-form-field class="telefone-field" *ngIf="telefoneCliente">
-                        <mat-label>Telefone</mat-label>
-                        <input matInput [(ngModel)]="telefoneCliente" name="telefoneCliente" readonly>
-                    </mat-form-field>
-                </ng-container>
-                <mat-form-field class="pagamento-field">
-                    <mat-label>Forma de Pagamento</mat-label>
-                    <mat-select [(ngModel)]="formaPagamento" name="formaPagamento" required>
-                        <mat-option value="DINHEIRO">Dinheiro</mat-option>
-                        <mat-option value="CARTAO">Cartão</mat-option>
-                        <mat-option value="PIX">Pix</mat-option>
-                        <mat-option value="VALES">Vales</mat-option>
-                    </mat-select>
-                </mat-form-field>
+        <button 
+          class="remove-btn" 
+          (click)="removerItem(item.id)"
+          aria-label="Remover item do carrinho">
+          <i class='bx bx-trash'></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer do carrinho com total e formulário -->
+  <div *ngIf="itensCarrinho.length > 0" class="cart-footer">
+    <!-- Total -->
+    <div class="total-section">
+      <div class="total-row">
+        <span class="total-label">Total do Pedido:</span>
+        <span class="total-amount">R$ {{ totalCarrinho.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <!-- Formulário de finalização -->
+    <form #finalizaForm="ngForm" (ngSubmit)="solicitarPedido()" autocomplete="off" class="order-form">
+      <div class="form-section">
+        <h4 class="section-title">
+          <i class='bx bx-clipboard'></i>
+          Dados do Pedido
+        </h4>
+        
+        <!-- Tipo de atendimento -->
+        <div class="form-group">
+          <label class="form-label">Tipo de Atendimento *</label>
+          <div class="service-types">
+            <input type="radio" id="mesa" value="MESA" [(ngModel)]="tipoAtendimento" name="tipoAtendimento" required>
+            <label for="mesa" class="service-option">
+              <i class='bx bx-table'></i>
+              Mesa
+            </label>
+            
+            <input type="radio" id="balcao" value="BALCAO" [(ngModel)]="tipoAtendimento" name="tipoAtendimento">
+            <label for="balcao" class="service-option">
+              <i class='bx bx-store'></i>
+              Balcão
+            </label>
+            
+            <input type="radio" id="entrega" value="ENTREGA" [(ngModel)]="tipoAtendimento" name="tipoAtendimento">
+            <label for="entrega" class="service-option">
+              <i class='bx bx-package'></i>
+              Entrega
+            </label>
+            
+            <input type="radio" id="retirada" value="RETIRADA" [(ngModel)]="tipoAtendimento" name="tipoAtendimento">
+            <label for="retirada" class="service-option">
+              <i class='bx bx-time'></i>
+              Retirada
+            </label>
+          </div>
+        </div>
+
+        <!-- Campos específicos por tipo de atendimento -->
+        <div *ngIf="tipoAtendimento === 'MESA'" class="conditional-fields">
+          <div class="form-group">
+            <label for="mesaNumero" class="form-label">Número da Mesa *</label>
+            <input 
+              type="number" 
+              id="mesaNumero"
+              [(ngModel)]="mesa" 
+              name="mesa" 
+              placeholder="Ex: 5"
+              class="form-input"
+              required 
+              min="1">
+          </div>
+        </div>
+
+        <div *ngIf="tipoAtendimento === 'ENTREGA'" class="conditional-fields">
+          <div class="delivery-info">
+            <i class='bx bx-time-five'></i>
+            <span>Tempo estimado: 30 min a 1 hora</span>
+          </div>
+          
+          <div class="form-group">
+            <label for="cpfEntrega" class="form-label">CPF do Cliente *</label>
+            <div class="input-with-button">
+              <input 
+                type="text" 
+                id="cpfEntrega"
+                [(ngModel)]="cpfCliente" 
+                name="cpfClienteEntrega" 
+                maxlength="11" 
+                minlength="11" 
+                required 
+                placeholder="00000000000"
+                class="form-input">
+              <button 
+                type="button" 
+                class="search-btn"
+                (click)="buscarCliente()" 
+                [disabled]="buscandoCliente || !cpfCliente || cpfCliente.length !== 11">
+                <i class='bx bx-search'></i>
+              </button>
             </div>
-            <mat-form-field class="observacao-venda-field">
-                <mat-label>Observação Geral do Pedido</mat-label>
-                <textarea matInput [(ngModel)]="observacaoVenda" name="observacaoVenda" rows="2"
-                    placeholder="Observações gerais do pedido"></textarea>
-            </mat-form-field>
-            <button class="finalizar-btn" type="submit"
-                [disabled]="finalizandoVenda || !tipoAtendimento || (tipoAtendimento === 'MESA' && !mesa)">
-                <i class='bx bx-send'></i> Solicitar Pedido
-            </button>
-        </form>
-    </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="endereco" class="form-label">Endereço para Entrega *</label>
+            <input 
+              type="text" 
+              id="endereco"
+              [(ngModel)]="enderecoCliente" 
+              name="enderecoCliente" 
+              required 
+              placeholder="Rua, número, bairro"
+              class="form-input">
+          </div>
+          
+          <div *ngIf="nomeCliente" class="form-group">
+            <label class="form-label">Nome do Cliente</label>
+            <input [(ngModel)]="nomeCliente" name="nomeCliente" readonly class="form-input readonly">
+          </div>
+          
+          <div *ngIf="telefoneCliente" class="form-group">
+            <label class="form-label">Telefone</label>
+            <input [(ngModel)]="telefoneCliente" name="telefoneCliente" readonly class="form-input readonly">
+          </div>
+        </div>
+
+        <div *ngIf="tipoAtendimento === 'RETIRADA'" class="conditional-fields">
+          <div class="pickup-info">
+            <i class='bx bx-time'></i>
+            <span>Escolha o horário para retirada (hoje)</span>
+          </div>
+          
+          <div class="form-group">
+            <label for="cpfRetirada" class="form-label">CPF do Cliente *</label>
+            <div class="input-with-button">
+              <input 
+                type="text" 
+                id="cpfRetirada"
+                [(ngModel)]="cpfCliente" 
+                name="cpfCliente" 
+                maxlength="11" 
+                minlength="11" 
+                required 
+                placeholder="00000000000"
+                class="form-input">
+              <button 
+                type="button" 
+                class="search-btn"
+                (click)="buscarClientePorCpf()" 
+                [disabled]="buscandoCliente || !cpfCliente || cpfCliente.length !== 11">
+                <i class='bx bx-search'></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="horario" class="form-label">Horário para Retirada *</label>
+            <input 
+              type="time" 
+              id="horario"
+              [(ngModel)]="horarioRetirada" 
+              name="horarioRetirada" 
+              required 
+              (ngModelChange)="onHorarioRetiradaChange($event)"
+              class="form-input">
+          </div>
+          
+          <div *ngIf="nomeCliente" class="form-group">
+            <label class="form-label">Nome do Cliente</label>
+            <input [(ngModel)]="nomeCliente" name="nomeCliente" readonly class="form-input readonly">
+          </div>
+          
+          <div *ngIf="telefoneCliente" class="form-group">
+            <label class="form-label">Telefone</label>
+            <input [(ngModel)]="telefoneCliente" name="telefoneCliente" readonly class="form-input readonly">
+          </div>
+        </div>
+
+        <!-- Forma de pagamento -->
+        <div class="form-group">
+          <label class="form-label">Forma de Pagamento *</label>
+          <div class="payment-methods">
+            <input type="radio" id="dinheiro" value="DINHEIRO" [(ngModel)]="formaPagamento" name="formaPagamento" required>
+            <label for="dinheiro" class="payment-option">
+              <i class='bx bx-money'></i>
+              Dinheiro
+            </label>
+            
+            <input type="radio" id="cartao" value="CARTAO" [(ngModel)]="formaPagamento" name="formaPagamento">
+            <label for="cartao" class="payment-option">
+              <i class='bx bx-credit-card'></i>
+              Cartão
+            </label>
+            
+            <input type="radio" id="pix" value="PIX" [(ngModel)]="formaPagamento" name="formaPagamento">
+            <label for="pix" class="payment-option">
+              <i class='bx bx-qr'></i>
+              Pix
+            </label>
+            
+            <input type="radio" id="vales" value="VALES" [(ngModel)]="formaPagamento" name="formaPagamento">
+            <label for="vales" class="payment-option">
+              <i class='bx bx-receipt'></i>
+              Vales
+            </label>
+          </div>
+        </div>
+
+        <!-- Observações -->
+        <div class="form-group">
+          <label for="observacoes" class="form-label">Observações do Pedido</label>
+          <textarea 
+            id="observacoes"
+            [(ngModel)]="observacaoVenda" 
+            name="observacaoVenda" 
+            rows="3"
+            placeholder="Observações gerais do pedido..."
+            class="form-textarea"></textarea>
+        </div>
+      </div>
+
+      <!-- Botão de finalizar -->
+      <button 
+        type="submit" 
+        class="submit-btn"
+        [disabled]="finalizandoVenda || !tipoAtendimento || (tipoAtendimento === 'MESA' && !mesa)"
+        [class.loading]="finalizandoVenda">
+        <i class='bx bx-send'></i>
+        <span>{{ finalizandoVenda ? 'Processando...' : 'Solicitar Pedido' }}</span>
+      </button>
+    </form>
+  </div>
 </div>

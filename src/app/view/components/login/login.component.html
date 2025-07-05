@@ -1,18 +1,72 @@
 <div class="login-container">
-  <mat-card>
-    <h2>Login</h2>
-    <form (ngSubmit)="login()" autocomplete="off">
-      <mat-form-field appearance="fill" class="login-field">
-        <mat-label>CPF</mat-label>
-        <input matInput [(ngModel)]="cpf" name="cpf" required maxlength="14" autocomplete="username">
-      </mat-form-field>
-      <mat-form-field appearance="fill" class="login-field">
-        <mat-label>Senha</mat-label>
-        <input matInput [(ngModel)]="senha" name="senha" type="password" required autocomplete="current-password">
-      </mat-form-field>
-      <button mat-raised-button color="primary" type="submit" [disabled]="loading">Entrar</button>
-      <div *ngIf="error" class="login-error">{{ error }}</div>
-      <div *ngIf="loading" class="login-loading">Entrando...</div>
-    </form>
-  </mat-card>
+  <div class="login-wrapper">
+    <!-- Logo e título -->
+    <div class="login-brand">
+      <img src="/assets/logo.png" alt="Logo Santa Fé" class="login-logo" />
+      <h1 class="login-title">Santa Fé</h1>
+      <p class="login-subtitle">Sistema de Gestão Comercial</p>
+    </div>
+
+    <!-- Card de login -->
+    <div class="login-card">
+      <div class="login-header">
+        <h2 class="login-welcome">Bem-vindo de volta!</h2>
+        <p class="login-description">Entre com suas credenciais para acessar o sistema</p>
+      </div>
+
+      <form (ngSubmit)="login()" autocomplete="off" class="login-form">
+        <div class="input-group">
+          <label for="cpf" class="input-label">CPF *</label>
+          <div class="input-container">
+            <i class='bx bx-user input-icon'></i>
+            <input 
+              type="text" 
+              id="cpf"
+              [(ngModel)]="cpf" 
+              name="cpf" 
+              required 
+              maxlength="14" 
+              autocomplete="username"
+              placeholder="000.000.000-00"
+              class="input-field">
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="senha" class="input-label">Senha *</label>
+          <div class="input-container">
+            <i class='bx bx-lock-alt input-icon'></i>
+            <input 
+              type="password" 
+              id="senha"
+              [(ngModel)]="senha" 
+              name="senha" 
+              required 
+              autocomplete="current-password"
+              placeholder="Digite sua senha"
+              class="input-field">
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          [disabled]="loading" 
+          class="login-btn"
+          [class.loading]="loading">
+          <i class='bx bx-log-in-circle'></i>
+          <span>{{ loading ? 'Entrando...' : 'Entrar no Sistema' }}</span>
+        </button>
+
+        <div *ngIf="error" class="login-error">
+          <i class='bx bx-error-circle'></i>
+          {{ error }}
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer da versão -->
+    <div class="login-footer">
+      <p>Versão 2.0.0 • © 2025 Santa Fé</p>
+    </div>
+  </div>
 </div>

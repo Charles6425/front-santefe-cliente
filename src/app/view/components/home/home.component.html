@@ -1,48 +1,95 @@
 <div class="home-vendas-container">
+  <!-- Loading Spinner -->
   <ng-container *ngIf="loading">
     <div class="loading-spinner">
-      <mat-spinner diameter="40"></mat-spinner>
+      <div class="spinner"></div>
+      <span class="loading-text">Carregando...</span>
     </div>
   </ng-container>
 
   <!-- Lista de Categorias -->
   <ng-container *ngIf="!categoriaSelecionada && !loading">
-    <h2 class="home-title">Escolha uma categoria</h2>
-    <div class="category-container" [ngClass]="categorias.length === 1 ? 'col-1' : 'col-2'">
-      <button class="category-card" *ngFor="let categoria of categorias" (click)="buscarProdutosPorCategoria(categoria)">
-        <img src="assets/logo-categoria.png" alt="Categoria" class="categoria-img" />
-        <span class="categoria-desc">{{ categoria.descricao }}</span>
-      </button>
+    <!-- Header da seção -->
+    <div class="section-header">
+      <div class="section-icon">
+        <i class='bx bx-cart-alt'></i>
+      </div>
+      <div class="section-info">
+        <h2 class="section-title">Sistema de Vendas</h2>
+        <p class="section-subtitle">Selecione produtos por categoria e finalize sua venda</p>
+      </div>
     </div>
-    <p *ngIf="categorias.length === 0" class="empty-msg">
-      Nenhuma categoria cadastrada.<br>Cadastre pelo menu lateral.
-    </p>
+
+    <!-- Título das categorias -->
+    <div class="categories-section">
+      <h3 class="categories-title">
+        <i class='bx bx-grid-alt'></i>
+        Categorias
+      </h3>
+      
+      <div class="category-grid" [ngClass]="categorias.length === 1 ? 'single-column' : 'double-column'">
+        <button class="category-card" *ngFor="let categoria of categorias" (click)="buscarProdutosPorCategoria(categoria)">
+          <div class="category-icon">
+            <i class='bx bx-category'></i>
+          </div>
+          <span class="category-name">{{ categoria.descricao }}</span>
+          <div class="category-arrow">
+            <i class='bx bx-chevron-right'></i>
+          </div>
+        </button>
+      </div>
+      
+      <div *ngIf="categorias.length === 0" class="empty-state">
+        <i class='bx bx-category'></i>
+        <h4>Nenhuma categoria encontrada</h4>
+        <p>Cadastre categorias pelo menu lateral para começar.</p>
+      </div>
+    </div>
   </ng-container>
 
   <!-- Lista de Produtos da Categoria Selecionada -->
   <ng-container *ngIf="categoriaSelecionada && !loading">
-    <div class="produtos-header">
-      <button class="voltar-btn" (click)="voltarParaCategorias()">
-        <i class='bx bx-arrow-back'></i> Categorias
+    <!-- Header com botão voltar -->
+    <div class="products-header">
+      <button class="back-btn" (click)="voltarParaCategorias()">
+        <i class='bx bx-arrow-back'></i>
+        <span>Categorias</span>
       </button>
-      <h2 class="home-title">{{ categoriaSelecionada.descricao }}</h2>
+      <div class="products-info">
+        <h3 class="products-title">{{ categoriaSelecionada.descricao }}</h3>
+        <span class="products-count">{{ produtos.length }} produto(s)</span>
+      </div>
     </div>
-    <div class="produto-container">
-      <button class="produto-card" *ngFor="let produto of produtos">
-        <div class="produto-info">
-          <span class="produto-nome">{{ produto.descricao }}</span>
-          <span class="produto-valor">R$ {{ produto.valor }}</span>
+
+    <!-- Grid de produtos -->
+    <div class="products-grid">
+      <div class="product-card" *ngFor="let produto of produtos">
+        <div class="product-info">
+          <h4 class="product-name">{{ produto.descricao }}</h4>
+          <span class="product-price">R$ {{ produto.valor }}</span>
         </div>
-        <span *ngIf="isProdutoNoCarrinho(produto)" class="badge-carrinho">No carrinho</span>
-        <button class="add-carrinho-btn" 
-                [disabled]="isProdutoNoCarrinho(produto)"
-                (click)="adicionarAoCarrinho(produto); $event.stopPropagation()">
-          <i class='bx bx-cart-add'></i>
-        </button>
-      </button>
+        
+        <div class="product-actions">
+          <span *ngIf="isProdutoNoCarrinho(produto)" class="in-cart-badge">
+            <i class='bx bx-check'></i>
+            No carrinho
+          </span>
+          
+          <button 
+            class="add-to-cart-btn" 
+            [disabled]="isProdutoNoCarrinho(produto)"
+            (click)="adicionarAoCarrinho(produto)"
+            [attr.aria-label]="'Adicionar ' + produto.descricao + ' ao carrinho'">
+            <i class='bx bx-cart-add'></i>
+          </button>
+        </div>
+      </div>
     </div>
-    <p *ngIf="produtos.length === 0" class="empty-msg">
-      Nenhum produto cadastrado nesta categoria.
-    </p>
+    
+    <div *ngIf="produtos.length === 0" class="empty-state">
+      <i class='bx bx-package'></i>
+      <h4>Nenhum produto encontrado</h4>
+      <p>Esta categoria não possui produtos cadastrados.</p>
+    </div>
   </ng-container>
 </div>
