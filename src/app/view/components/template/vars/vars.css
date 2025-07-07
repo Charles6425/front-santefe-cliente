@@ -1,7 +1,7 @@
 :root {
-    --geral: #f4efe9
-    --Marrom-escuro: #4b2e2b
-    --Marrom-médio: #6e4c47
-    --Vermelho-queimado: #a6453d
-    --Branco: #ffffff
+    --geral: #f8f9ff;
+    --primary-color: #667eea;
+    --primary-dark: #764ba2;
+    --success-color: #4caf50;
+    --Branco: #ffffff;
 }

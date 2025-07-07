@@ -66,6 +66,10 @@
       <div class="product-card" *ngFor="let produto of produtos">
         <div class="product-info">
           <h4 class="product-name">{{ produto.descricao }}</h4>
+          <p *ngIf="produto.observacao && produto.observacao.trim() !== ''" class="product-note">
+            <i class='bx bx-note'></i>
+            {{ produto.observacao }}
+          </p>
           <span class="product-price">R$ {{ produto.valor }}</span>
         </div>
         

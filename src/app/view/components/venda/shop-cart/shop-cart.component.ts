@@ -17,6 +17,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { PedidoService } from '../../../../services/pedido.service';
 import { ProdutoService } from '../../../../services/produto.service';
 import { Produto } from '../../../../models/produto';
+import { CategoriaService } from '../../../../services/categoria.service';
+import { Categoria } from '../../../../models/categoria';
 
 @Component({
   selector: 'app-shop-cart',
@@ -52,6 +54,13 @@ export class ShopCartComponent implements OnInit {
   clienteId: number | null = null;
   status: string = 'Aberto';
   produtos: Produto[] = [];
+  categorias: Categoria[] = [];
+  categoriaMap: Map<number, string> = new Map();
+
+  // Método para obter o nome da categoria a partir do ID
+  getCategoriaNome(categoriaId: number): string {
+    return this.categoriaMap.get(categoriaId) || '';
+  }
 
   // Método para manipular mudanças no horário de retirada com validação
   onHorarioRetiradaChange(value: string): void {
@@ -102,7 +111,8 @@ export class ShopCartComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private assinadaService: AssinadaService,
     private footerService: FooterService,
-    private pedidoService: PedidoService
+    private pedidoService: PedidoService,
+    private categoriaService: CategoriaService
   ) {
     // Inscreve-se no serviço de refresh para atualizar o carrinho quando necessário
     this.refreshService.refresh$.subscribe(() => {
@@ -116,6 +126,15 @@ export class ShopCartComponent implements OnInit {
     // Carrega a lista de produtos disponíveis
     this.produtoService.findAll().subscribe((produtos) => {
       this.produtos = produtos;
+    });
+    // Carrega a lista de categorias
+    this.categoriaService.findAll().subscribe((categorias) => {
+      this.categorias = categorias;
+      // Cria um mapa para acesso rápido: categoriaId -> nome da categoria
+      this.categoriaMap.clear();
+      categorias.forEach(categoria => {
+        this.categoriaMap.set(categoria.id, categoria.descricao);
+      });
     });
   }
 
@@ -318,7 +337,8 @@ export class ShopCartComponent implements OnInit {
     const itensFormatados = this.itensCarrinho.map(item => ({
       produtoId: item.produtoId ?? null,
       quantidade: item.quantidade ?? null,
-      valorUnitario: item.valorUnitario ?? null
+      valorUnitario: item.valorUnitario ?? null,
+      observacao: item.observacao ?? ''
     }));
 
     // Calcula o valor total dos itens
@@ -346,8 +366,6 @@ export class ShopCartComponent implements OnInit {
     if (this.tipoAtendimento === 'RETIRADA' && this.horarioRetirada) {
       payload.horarioRetirada = this.formatTimeToHHmmss(this.horarioRetirada);
     }
-
-    console.log('Payload construído:', payload); // Log para debug
 
     return payload;
   }

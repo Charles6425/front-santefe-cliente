@@ -89,7 +89,7 @@ export class HomeComponent {
       quantidade: 1,
       valorUnitario: parseFloat(produto.valor),
       valorTotal: parseFloat(produto.valor),
-      observacao: ''
+      observacao: produto.observacao || ''
     };
     this.carrinhoService.adicionar(item).subscribe({
       next: () => {

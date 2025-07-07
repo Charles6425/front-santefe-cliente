@@ -22,9 +22,9 @@
     <div *ngFor="let item of itensCarrinho" class="cart-item">
       <div class="item-details">
         <h4 class="item-name">{{ item.produto }}</h4>
-        <span class="item-category">{{ item.categoria }}</span>
-        <div class="item-price">R$ {{ item.valorTotal.toFixed(2) }}</div>
-        <p *ngIf="item.observacao" class="item-note">
+        <span *ngIf="item.categoriaId && getCategoriaNome(item.categoriaId)" class="item-category">{{ getCategoriaNome(item.categoriaId) }}</span>
+        <div class="item-price">R$ {{ item.valorUnitario.toFixed(2) }} (un.)</div>
+        <p *ngIf="item.observacao && item.observacao.trim() !== ''" class="item-note">
           <i class='bx bx-note'></i>
           {{ item.observacao }}
         </p>

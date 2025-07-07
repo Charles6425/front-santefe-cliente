@@ -96,13 +96,13 @@
 .cart-items {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .cart-item {
   background: white;
   border-radius: 16px;
-  padding: 20px;
+  padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -139,47 +139,58 @@
 .item-name {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
-  margin: 0;
+  color: #2c3e50;
+  margin: 0 0 6px 0;
   line-height: 1.3;
 }
 
 .item-category {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #667eea;
   font-weight: 500;
-  background: rgba(102, 126, 234, 0.1);
-  padding: 4px 12px;
-  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.05));
+  padding: 3px 10px;
+  border-radius: 10px;
   display: inline-block;
-  width: fit-content;
+  margin-bottom: 8px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
 }
 
 .item-price {
-  font-size: 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #27ae60;
+  margin: 4px 0;
+}
+
+.item-total {
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #4caf50;
-  margin-top: 4px;
+  color: #2c3e50;
+  margin: 6px 0 8px 0;
 }
 
 .item-note {
-  background: #f8f9ff;
-  border: 1px solid #e3e8ff;
+  background: #f8f9fa;
+  border-left: 4px solid #6c757d;
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 0.85rem;
-  color: #666;
-  margin: 4px 0 0 0;
+  color: #6c757d;
+  margin: 6px 0 0 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   line-height: 1.4;
+  font-weight: 400;
+  font-style: italic;
 }
 
 .item-note i {
-  color: #667eea;
-  font-size: 1rem;
+  color: #6c757d;
+  font-size: 0.9rem;
   flex-shrink: 0;
+  margin-top: 1px;
 }
 
 /* ========== AÇÕES DO ITEM ========== */
@@ -594,6 +605,10 @@
     gap: 20px;
   }
   
+  .cart-items {
+    gap: 10px;
+  }
+  
   .cart-header {
     padding: 16px;
     flex-direction: column;
@@ -640,6 +655,10 @@
   .cart-container {
     padding: 12px;
     gap: 16px;
+  }
+  
+  .cart-items {
+    gap: 8px;
   }
   
   .cart-header,
@@ -727,7 +746,7 @@
     text-align: center;
     font-size: 1.1rem;
     font-weight: 600;
-    color: #b61c23;
+    color: #667eea;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -736,7 +755,7 @@
 .remover-btn {
     background: none;
     border: none;
-    color: #b61c23;
+    color: #667eea;
     cursor: pointer;
     padding: 0.4rem;
     border-radius: 50%;
@@ -748,8 +767,8 @@
 }
 
 .remover-btn:hover {
-    background-color: rgba(182, 28, 35, 0.1);
-    color: #8b0000;
+    background-color: rgba(102, 126, 234, 0.1);
+    color: #764ba2;
     transform: scale(1.1);
 }
 
@@ -764,7 +783,7 @@
 .material-icons {
     vertical-align: middle;
     margin-left: 0.5rem;
-    color: #b61c23;
+    color: #667eea;
 }
 
 .category-container,
@@ -830,7 +849,7 @@
 
 .bx-cart-add:hover {
     transform: scale(1.2);
-    color: #b61c23;
+    color: #667eea;
 }
 
 .carrinho-footer {
@@ -871,14 +890,14 @@
 .total-valor {
     font-size: 1.4rem;
     font-weight: bold;
-    color: #b61c23;
+    color: #4caf50;
     letter-spacing: 0;
 }
 
 .finalizar-btn {
     width: 100%;
     padding: 1rem;
-    background: linear-gradient(145deg, #b61c23, #931017);
+    background: linear-gradient(135deg, #667eea, #764ba2);
     border: none;
     border-radius: 8px;
     color: white;
@@ -889,21 +908,21 @@
     justify-content: center;
     align-items: center;
     gap: 0.5rem;
-    box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 1rem;
 }
 
 .finalizar-btn:hover {
-    background: linear-gradient(145deg, #cc1f27, #b61c23);
+    background: linear-gradient(135deg, #764ba2, #667eea);
     transform: translateY(-2px);
-    box-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .finalizar-btn:active {
-    background: linear-gradient(145deg, #931017, #b61c23);
+    background: linear-gradient(135deg, #5a67d8, #667eea);
     transform: translateY(0);
-    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .finalizar-btn i {
@@ -911,7 +930,7 @@
 }
 
 .finalizar-btn:enabled {
-    background: linear-gradient(145deg, #b61c23, #931017);
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: #fff;
 }
 
@@ -1027,13 +1046,13 @@
 .cpf-aprova-btn {
     flex: 0 0 auto;
     margin-bottom: 4px;
-    background: linear-gradient(145deg, #b61c23, #931017);
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: #fff;
     box-shadow: 0 2px 8px rgba(182,28,35,0.10);
     transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 .cpf-aprova-btn:hover {
-    background: linear-gradient(145deg, #cc1f27, #b61c23);
+    background: linear-gradient(135deg, #764ba2, #667eea);
     box-shadow: 0 4px 12px rgba(182,28,35,0.18);
     transform: translateY(-2px) scale(1.08);
 }
@@ -1220,7 +1239,7 @@
   all: unset;
 }
 .cpf-field .mat-icon {
-  color: #b61c23;
+  color: #667eea;
   font-size: 22px;
 }
 
