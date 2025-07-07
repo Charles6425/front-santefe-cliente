@@ -1,17 +1,22 @@
-<!-- Header refatorado: Logout | Logo + Nome | Carrinho/Home -->
+<!-- Header moderno: Bem-vindo | Logo + Nome | Carrinho/Home -->
 <header class="header">
-  <!-- Esquerda: Ícone de logout -->
+  <!-- Esquerda: Bem-vindo e ícone de usuário -->
   <div class="header-left">
-    <button class="nav-btn logout-btn" (click)="logout()" aria-label="Fazer logout">
-      <i class='bx bx-log-out'></i>
-    </button>
+    <div class="welcome-section" (click)="logout()" role="button" tabindex="0" (keydown.enter)="logout()"
+      (keydown.space)="logout()" aria-label="Fazer logout">
+      <i class='bx bx-log-out welcome-icon'></i>
+      <span class="welcome-text">Sair</span>
+    </div>
   </div>
 
   <!-- Centro: Logo + Nome do restaurante -->
   <div class="header-center">
     <div class="brand-container">
       <img src="/assets/logo.png" alt="Logo do Restaurante" class="brand-logo" />
-      <h1 class="brand-name">Restaurante Santa Fé</h1>
+      <div class="brand-text">
+        <h1 class="brand-name">Restaurante Santa Fé</h1>
+        <span class="brand-subtitle">Tradição e Sabor</span>
+      </div>
     </div>
   </div>
 

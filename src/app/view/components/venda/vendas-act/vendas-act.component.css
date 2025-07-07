@@ -11,16 +11,19 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 80px); /* Ajuste para não sobrepor o footer */
+  overflow: hidden;
 }
 
+/* mat-card styles removed - now using direct static-list */
+/*
 mat-card {
     width: 95%;
     margin: 1rem auto;
     padding: 1rem;
-    background-color: #aa826f;
-    border-radius: 8px;
-    box-shadow: none;
+    background: linear-gradient(135deg, #f8f9ff 0%, #e3e8ff 100%);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
@@ -38,17 +41,29 @@ mat-card-content {
 }
 
 .cardapio-title {
-    text-align: left;
-    margin-bottom: 1rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+    border-radius: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.1);
 }
 
 .cardapio-title h1 {
-    color: white;
-    font-size: 2rem;
-    font-weight: 500;
+    color: #667eea;
+    font-family: 'Poppins', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 600;
     margin-bottom: 0;
-    letter-spacing: 0;
+    letter-spacing: -0.5px;
+    text-align: center;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 4px rgba(102, 126, 234, 0.1);
 }
+*/
 
 .container-wrapper {
     display: flex;
@@ -61,9 +76,9 @@ mat-card-content {
 .find-produtos-by-categoria {
     width: 100%;
     max-width: none;
-    background-color: #f4f4f4;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #f8f9ff 0%, #e3e8ff 100%);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
     padding: 1rem;
     margin-bottom: 1rem;
 }
@@ -78,15 +93,18 @@ mat-card-content {
 
 .static-list {
     width: 100%;
-    background-color: #f4f4f4;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: auto;
+    max-width: 100%;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 1rem; /* Muito mais espaço para o footer e botões */
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
-    min-height: 0;
+    min-height: calc(100vh - 80px);
+    max-height: none; /* Remover limitação de altura máxima */
+    overflow-y: auto;
 }
 
 category-button,
@@ -94,7 +112,7 @@ category-button,
     width: 100%;
     padding: 0.8rem 1rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(145deg, #b61c23, #931017);
+    background: linear-gradient(135deg, #667eea, #764ba2);
     border: none;
     border-radius: 8px;
     color: white;
@@ -104,24 +122,24 @@ category-button,
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     min-height: 2.8rem;
     position: relative;
 }
 
 .category-button:hover,
 .produto-button:hover {
-    background: linear-gradient(145deg, #cc1f27, #b61c23);
+    background: linear-gradient(135deg, #764ba2, #667eea);
     transform: translateY(-2px);
-    box-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .category-button:active,
 .produto-button:active {
-    background: linear-gradient(145deg, #931017, #b61c23);
+    background: linear-gradient(135deg, #5a67d8, #667eea);
     transform: translateY(0);
-    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .category-container,
@@ -205,16 +223,17 @@ category-button,
     text-align: center;
     color: #666;
     padding: 1.5rem;
-    background-color: white;
-    border-radius: 8px;
+    background: linear-gradient(135deg, #f8f9ff 0%, #e3e8ff 100%);
+    border-radius: 16px;
     margin: 1rem 0;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.1);
 }
 
 .material-icons {
     vertical-align: middle;
     margin-left: 0.5rem;
-    color: #b61c23;
+    color: #667eea;
 }
 
 /* Media query apenas para telas maiores */
@@ -234,15 +253,71 @@ category-button,
 
 /* Media query para telas menores */
 @media (max-width: 900px) {
-    mat-card {
-        padding: 1rem;
-        width: 95%;
+    .static-list {
+        padding: 0.5rem;
+        padding-bottom: 250px; /* Ainda mais espaço no mobile */
+        min-height: calc(100vh - 60px);
+        max-height: none; /* Sem limitação de altura no mobile */
     }
+    
+    .vendas-wrapper {
+        height: auto; /* Altura automática no mobile */
+        min-height: calc(100vh - 60px);
+    }
+    
     .find-categorias, .find-produtos-by-categoria {
         padding: 1rem;
     }
-    .cardapio-title h1 {
-        font-size: 1.3rem;
+}
+
+/* Garantir que o conteúdo do carrinho seja totalmente visível */
+.static-list app-shop-cart {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+/* Estilo para o container do carrinho dentro do static-list */
+.static-list .cart-container {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+/* Garantir espaçamento adequado para todos os elementos do carrinho */
+.static-list .cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.static-list .cart-item {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Melhorar o scroll no mobile */
+@media (max-width: 768px) {
+    .static-list {
+        padding-bottom: 300px; /* Muito mais espaço no mobile */
+        -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+    }
+    
+    .static-list .submit-btn,
+    .static-list .finalizar-btn {
+        margin-bottom: 4rem; /* Margem maior no mobile */
     }
 }
 
@@ -251,6 +326,7 @@ category-button,
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
+  position: relative;
 }
 
 .main-content {
@@ -261,5 +337,37 @@ category-button,
   flex-direction: column;
   background: #faf9fd;
   padding: 0;
+  padding-bottom: 80px; /* Espaço para o footer */
   box-sizing: border-box;
+}
+
+/* Melhorar a visibilidade das observações dos produtos */
+.static-list .item-note {
+    background: linear-gradient(135deg, #fff3e0, #fffbf0);
+    border: 2px solid #ff9800;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    color: #e65100;
+    margin: 8px 0;
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.5;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+}
+
+.static-list .item-note i {
+    color: #ff9800;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+/* Garantir que a observação apareça mesmo se estiver vazia */
+.static-list .item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
 }

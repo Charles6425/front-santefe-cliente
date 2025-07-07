@@ -61,7 +61,7 @@ export class VendasActComponent implements OnInit {
         quantidade: 1,
         valorUnitario: parseFloat(produto.valor),
         valorTotal: parseFloat(produto.valor),
-        observacao: ''
+        observacao: produto.observacao || ''
       };
       
       // Garante que existe uma venda aberta antes de adicionar o item
