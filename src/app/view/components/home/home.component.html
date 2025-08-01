@@ -74,14 +74,14 @@
         </div>
         
         <div class="product-actions">
-          <span *ngIf="isProdutoNoCarrinho(produto)" class="in-cart-badge">
+          <span *ngIf="estaNoCarrinho(produto)" class="in-cart-badge">
             <i class='bx bx-check'></i>
             No carrinho
           </span>
           
           <button 
             class="add-to-cart-btn" 
-            [disabled]="isProdutoNoCarrinho(produto)"
+            [disabled]="estaNoCarrinho(produto)"
             (click)="adicionarAoCarrinho(produto)"
             [attr.aria-label]="'Adicionar ' + produto.descricao + ' ao carrinho'">
             <i class='bx bx-cart-add'></i>

@@ -12,7 +12,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 })
 export class CategoriaService {
 
-  baseUrl = environment.baseUrl;
+  baseUrl = environment.apiUrl;
 
   constructor(
     private http : HttpClient,

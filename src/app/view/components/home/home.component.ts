@@ -8,11 +8,11 @@ import { Categoria } from '../../../models/categoria';
 import { Produto } from '../../../models/produto';
 import { CategoriaService } from '../../../services/categoria.service';
 import { ProdutoService } from '../../../services/produto.service';
-import { CarrinhoService } from '../../../services/carrinho.service';
-import { ItemDTO } from '../../../models/item-dto';
+import { CartClientService } from '../../../services/cart-client.service';
 import { RefreshService } from '../../../services/refresh.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
+import { Cart } from '../../../models/cart-client.interface';
 
 @Component({
   selector: 'app-home',
@@ -26,22 +26,33 @@ export class HomeComponent {
   produtos: Produto[] = [];
   categoriaSelecionada: Categoria | null = null;
   loading: boolean = false;
-  itensCarrinho: ItemDTO[] = [];
+  cart: Cart = {
+    items: [],
+    quantidadeItens: 0,
+    valorProdutos: 0,
+    valorTotal: 0,
+    dataUltimaAtualizacao: new Date()
+  };
 
   constructor(
     private categoriaService: CategoriaService,
     private produtoService: ProdutoService,
-    private carrinhoService: CarrinhoService,
+    private cartClientService: CartClientService,
     private refreshService: RefreshService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.buscarCategorias();
-    this.refreshService.refresh$.subscribe(() => {
-      this.atualizarItensCarrinho();
+    
+    // Inscrever-se nas mudanças do carrinho
+    this.cartClientService.cart$.subscribe(cart => {
+      this.cart = cart;
     });
-    this.atualizarItensCarrinho();
+    
+    this.refreshService.refresh$.subscribe(() => {
+      // Com localStorage, não precisa atualizar via HTTP
+    });
   }
 
   buscarCategorias(): void {
@@ -80,40 +91,13 @@ export class HomeComponent {
 
   adicionarAoCarrinho(produto: Produto): void {
     if (!this.categoriaSelecionada) return;
-    const item: ItemDTO = {
-      id: 0,
-      produto: produto.descricao,
-      produtoId: produto.id,
-      categoria: this.categoriaSelecionada.descricao,
-      categoriaId: this.categoriaSelecionada.id,
-      quantidade: 1,
-      valorUnitario: parseFloat(produto.valor),
-      valorTotal: parseFloat(produto.valor),
-      observacao: produto.observacao || ''
-    };
-    this.carrinhoService.adicionar(item).subscribe({
-      next: () => {
-        this.carrinhoService.message(`${produto.descricao} adicionado ao carrinho!`);
-        this.refreshService.triggerRefresh();
-      },
-      error: () => {
-        this.carrinhoService.message('Erro ao adicionar item ao carrinho', true);
-      }
-    });
+    
+    // Usar o novo serviço para adicionar ao carrinho
+    this.cartClientService.addItem(produto, 1, produto.observacao || '');
+    this.refreshService.triggerRefresh();
   }
 
-  atualizarItensCarrinho(): void {
-    this.carrinhoService.getItensNaoFinalizados().subscribe({
-      next: (res) => {
-        this.itensCarrinho = res;
-      },
-      error: () => {
-        this.itensCarrinho = [];
-      }
-    });
-  }
-
-  isProdutoNoCarrinho(produto: Produto): boolean {
-    return this.itensCarrinho.some(item => item.produtoId === produto.id);
+  estaNoCarrinho(produto: Produto): boolean {
+    return this.cart.items.some(item => item.produtoId === produto.id);
   }
 }

@@ -1,627 +1,439 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { ItemDTO } from '../../../../models/item-dto';
-import { CarrinhoService } from '../../../../services/carrinho.service';
-import { RefreshService } from '../../../../services/refresh.service';
-import { Venda } from '../../../../models/venda';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AssinadaService } from '../../../../services/assinada.service';
-import { Assinada } from '../../../../models/assinada';
-import { forkJoin, Observable, of } from 'rxjs';
-import { FooterService } from '../../../../services/footer.service';
 import { MatIconModule } from '@angular/material/icon';
-import { PedidoService } from '../../../../services/pedido.service';
+import { MatButtonModule } from '@angular/material/button';
+import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+import { CartClientService } from '../../../../services/cart-client.service';
+import { RefreshService } from '../../../../services/refresh.service';
+import { FooterService } from '../../../../services/footer.service';
 import { ProdutoService } from '../../../../services/produto.service';
-import { Produto } from '../../../../models/produto';
 import { CategoriaService } from '../../../../services/categoria.service';
+
+import { Cart, CartItem, ClientSaleData, SolicitacaoVendaRequest } from '../../../../models/cart-client.interface';
+import { Produto } from '../../../../models/produto';
 import { Categoria } from '../../../../models/categoria';
 
 @Component({
   selector: 'app-shop-cart',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatProgressSpinnerModule, MatIconModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule,
+    MatInputModule, 
+    MatFormFieldModule, 
+    MatSelectModule, 
+    MatProgressSpinnerModule, 
+    MatIconModule,
+    MatButtonModule
+  ],
   providers: [FooterService],
   templateUrl: './shop-cart.component.html',
   styleUrl: './shop-cart.component.css'
 })
-export class ShopCartComponent implements OnInit {
-  itensCarrinho: ItemDTO[] = [];
-  totalCarrinho = 0;
-  vendaId: number | null = null;
+export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
+  // Subject para gerenciar unsubscribe
+  private destroy$ = new Subject<void>();
+
+  // Carrinho baseado em localStorage
+  cart: Cart = {
+    items: [],
+    quantidadeItens: 0,
+    valorProdutos: 0,
+    valorTotal: 0,
+    dataUltimaAtualizacao: new Date()
+  };
+
+  // Formulário de checkout para cliente
+  checkoutForm: FormGroup;
+  
+  // Estados de controle
   finalizandoVenda = false;
-  vendaDetalhe: Venda | null = null;
-  mesa: number | null = null;
-  formaPagamento = '';
-  private _tipoAtendimento = '';
-  valorDesconto: number | null = null;
-  valorAcrescimo: number | null = null;
-  cpfCliente: string = '';
-  nomeCliente: string = '';
-  enderecoCliente: string = '';
-  telefoneCliente: string = '';
-  telefoneCliente2: string = '';
-  nomeDesconto: string = '';
-  nomeAcrescimo: string = '';
-  observacaoVenda: string = '';
-  horarioEntrega: string = '';
-  horarioRetirada: string = '';
   buscandoCliente = false;
   clienteEncontrado = false;
-  clienteId: number | null = null;
-  status: string = 'Aberto';
+  
+  // Dados auxiliares
   produtos: Produto[] = [];
   categorias: Categoria[] = [];
   categoriaMap: Map<number, string> = new Map();
 
-  // Método para obter o nome da categoria a partir do ID
+  // Opções limitadas para cliente (SEM COMANDA)
+  tiposAtendimento = [
+    { value: 'BALCAO', label: 'Balcão' },
+    { value: 'MESA', label: 'Mesa' },
+    { value: 'ENTREGA', label: 'Entrega' },
+    { value: 'RETIRADA', label: 'Retirada' }
+  ];
+
+  formasPagamento = [
+    { value: 'DINHEIRO', label: 'Dinheiro' },
+    { value: 'CARTAO', label: 'Cartão' },
+    { value: 'PIX', label: 'PIX' },
+    { value: 'VALES', label: 'Voucher' }
+  ];
+
+  constructor(
+    private cartClientService: CartClientService,
+    private refreshService: RefreshService,
+    private produtoService: ProdutoService,
+    private categoriaService: CategoriaService,
+    private footerService: FooterService,
+    private fb: FormBuilder,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {
+    // Configurar formulário reativo
+    this.checkoutForm = this.fb.group({
+      tipoAtendimento: ['BALCAO', [Validators.required]],
+      formaPagamento: ['DINHEIRO', [Validators.required]],
+      mesa: [''],
+      horarioRetirada: [''],
+      cpfCliente: [''],
+      nomeCliente: [''],
+      telefoneCliente: [''],
+      enderecoCliente: [''],
+      observacoes: ['']
+    });
+
+    // Validações condicionais
+    this.setupConditionalValidations();
+  }
+
+  ngOnInit(): void {
+    this.loadCartItems();
+    this.loadProdutos();
+    this.loadCategorias();
+  }
+
+  ngAfterViewInit(): void {
+    // Mover subscriptions para depois da inicialização da view para evitar conflitos de hidratação
+    setTimeout(() => {
+      // Inscrever-se nas mudanças do carrinho
+      this.cartClientService.cart$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(cart => {
+          this.cart = cart;
+          this.footerService.updateFooter();
+        });
+
+      // Inscrever-se no refresh service
+      this.refreshService.refresh$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.loadCartItems();
+        });
+    }, 0);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Configurar validações condicionais baseadas no tipo de atendimento
+   */
+  private setupConditionalValidations(): void {
+    this.checkoutForm.get('tipoAtendimento')?.valueChanges.subscribe(tipo => {
+      // Limpar validações anteriores
+      this.checkoutForm.get('mesa')?.clearValidators();
+      this.checkoutForm.get('horarioRetirada')?.clearValidators();
+      this.checkoutForm.get('cpfCliente')?.clearValidators();
+      this.checkoutForm.get('nomeCliente')?.clearValidators();
+      this.checkoutForm.get('telefoneCliente')?.clearValidators();
+      this.checkoutForm.get('enderecoCliente')?.clearValidators();
+
+      // Aplicar validações baseadas no tipo
+      if (tipo === 'MESA') {
+        this.checkoutForm.get('mesa')?.setValidators([Validators.required]);
+      } else if (tipo === 'RETIRADA') {
+        this.checkoutForm.get('horarioRetirada')?.setValidators([Validators.required]);
+        this.checkoutForm.get('cpfCliente')?.setValidators([Validators.required]);
+        this.checkoutForm.get('nomeCliente')?.setValidators([Validators.required]);
+        this.checkoutForm.get('telefoneCliente')?.setValidators([Validators.required]);
+      } else if (tipo === 'ENTREGA') {
+        this.checkoutForm.get('cpfCliente')?.setValidators([Validators.required]);
+        this.checkoutForm.get('nomeCliente')?.setValidators([Validators.required]);
+        this.checkoutForm.get('telefoneCliente')?.setValidators([Validators.required]);
+        this.checkoutForm.get('enderecoCliente')?.setValidators([Validators.required]);
+      }
+
+      // Atualizar validações
+      this.checkoutForm.get('mesa')?.updateValueAndValidity();
+      this.checkoutForm.get('horarioRetirada')?.updateValueAndValidity();
+      this.checkoutForm.get('cpfCliente')?.updateValueAndValidity();
+      this.checkoutForm.get('nomeCliente')?.updateValueAndValidity();
+      this.checkoutForm.get('telefoneCliente')?.updateValueAndValidity();
+      this.checkoutForm.get('enderecoCliente')?.updateValueAndValidity();
+    });
+  }
+
+  /**
+   * Carrega os itens do carrinho
+   */
+  private loadCartItems(): void {
+    // O carrinho já é carregado automaticamente via Observable
+    // Apenas sincronizar com o estado atual sem forçar detecção
+    const currentCart = this.cartClientService.getCurrentCart();
+    if (currentCart) {
+      this.cart = currentCart;
+    }
+  }
+
+  /**
+   * Carrega a lista de produtos
+   */
+  private loadProdutos(): void {
+    this.produtoService.findAll().subscribe({
+      next: (produtos) => {
+        this.produtos = produtos;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar produtos:', error);
+      }
+    });
+  }
+
+  /**
+   * Carrega a lista de categorias
+   */
+  private loadCategorias(): void {
+    this.categoriaService.findAll().subscribe({
+      next: (categorias) => {
+        this.categorias = categorias;
+        this.categoriaMap.clear();
+        categorias.forEach(categoria => {
+          this.categoriaMap.set(categoria.id, categoria.descricao);
+        });
+      },
+      error: (error) => {
+        console.error('Erro ao carregar categorias:', error);
+      }
+    });
+  }
+
+  /**
+   * Adiciona produto ao carrinho
+   */
+  addToCart(produto: Produto, quantidade: number = 1, observacao?: string): void {
+    this.cartClientService.addItem(produto, quantidade, observacao);
+  }
+
+  /**
+   * Remove item do carrinho
+   */
+  removeItem(itemId: string): void {
+    this.cartClientService.removeItem(itemId);
+  }
+
+  /**
+   * Atualiza quantidade de um item
+   */
+  updateItemQuantity(itemId: string, quantidade: number): void {
+    this.cartClientService.updateItemQuantity(itemId, quantidade);
+  }
+
+  /**
+   * Obtém nome da categoria pelo ID
+   */
   getCategoriaNome(categoriaId: number): string {
     return this.categoriaMap.get(categoriaId) || '';
   }
 
-  // Método para manipular mudanças no horário de retirada com validação
-  onHorarioRetiradaChange(value: string): void {
-    // Atualiza o valor do horário de retirada quando o usuário modifica o campo
-    this.horarioRetirada = value;
-    
-    // Validação do formato HH:mm
-    if (value && !this.isValidTimeFormat(value)) {
-      this.carrinhoService.message('Formato de horário inválido. Use HH:mm (ex: 14:30)', true);
-    }
-  }
-
-  // Valida se o horário está no formato HH:mm e é um horário válido
-  private isValidTimeFormat(time: string): boolean {
-    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    return timeRegex.test(time);
-  }
-
-  // Converte horário HH:mm para HH:mm:ss
-  private formatTimeToHHmmss(time: string): string {
-    if (!time) return '';
-    
-    // Se já está no formato HH:mm:ss, retorna como está
-    if (/^\d{2}:\d{2}:\d{2}$/.test(time)) {
-      return time;
-    }
-    
-    // Se está no formato HH:mm, adiciona :00
-    if (/^\d{2}:\d{2}$/.test(time)) {
-      return time + ':00';
-    }
-    
-    // Se está no formato H:mm ou H:m, normaliza para HH:mm:ss
-    const parts = time.split(':');
-    if (parts.length === 2) {
-      const hours = parts[0].padStart(2, '0');
-      const minutes = parts[1].padStart(2, '0');
-      return `${hours}:${minutes}:00`;
-    }
-    
-    return time;
-  }
-
-  constructor(
-    private carrinhoService: CarrinhoService,
-    private refreshService: RefreshService,
-    private produtoService: ProdutoService,
-    private cdr: ChangeDetectorRef,
-    private assinadaService: AssinadaService,
-    private footerService: FooterService,
-    private pedidoService: PedidoService,
-    private categoriaService: CategoriaService
-  ) {
-    // Inscreve-se no serviço de refresh para atualizar o carrinho quando necessário
-    this.refreshService.refresh$.subscribe(() => {
-      this.listarItensCarrinho();
-    });
-  }
-
-  ngOnInit(): void {
-    // Carrega os itens do carrinho ao inicializar o componente
-    this.listarItensCarrinho();
-    // Carrega a lista de produtos disponíveis
-    this.produtoService.findAll().subscribe((produtos) => {
-      this.produtos = produtos;
-    });
-    // Carrega a lista de categorias
-    this.categoriaService.findAll().subscribe((categorias) => {
-      this.categorias = categorias;
-      // Cria um mapa para acesso rápido: categoriaId -> nome da categoria
-      this.categoriaMap.clear();
-      categorias.forEach(categoria => {
-        this.categoriaMap.set(categoria.id, categoria.descricao);
-      });
-    });
-  }
-
-  adicionarPrimeiroItemAoCarrinho(item: ItemDTO): void {
-    // Se não há venda aberta, cria uma nova venda antes de adicionar o item
-    if (!this.vendaId) {
-      this.carrinhoService.getVendaAberta().subscribe({
-        next: (id) => {
-          this.vendaId = id;
-          this.carregarDetalhesVenda(id);
-          this.adicionarItemAoCarrinho(item);
-        },
-        error: () => {
-          this.carrinhoService.message('Erro ao abrir venda!', true);
-        }
-      });
-    } else {
-      // Se já existe uma venda aberta, adiciona o item diretamente
-      this.adicionarItemAoCarrinho(item);
-    }
-  }
-
-  adicionarItemAoCarrinho(item: ItemDTO): void {
-    // Adiciona o item ao carrinho e atualiza a lista
-    this.carrinhoService.adicionar(item).subscribe(() => {
-      this.listarItensCarrinho();
-      this.carrinhoService.message('Item adicionado ao carrinho!');
-    });
-  }
-
-  obterVendaAberta(): void {
-    // Busca a venda aberta atual e carrega seus detalhes
-    this.carrinhoService.getVendaAberta().subscribe({
-      next: (id) => {
-        this.vendaId = id;
-        if (id) this.carregarDetalhesVenda(id);
-        this.listarItensCarrinho();
-      },
-      error: (err) => {
-        this.carrinhoService.message('Erro ao obter venda aberta!', true);
-      }
-    });
-  }
-
-  carregarDetalhesVenda(id: number): void {
-    // Carrega os detalhes da venda específica (mesa, forma de pagamento, etc.)
-    this.carrinhoService.getVendaDetalhada(id).subscribe({
-      next: (dto) => {
-        this.vendaDetalhe = dto.venda;
-        this.mesa = dto.venda.mesa || null;
-        this.formaPagamento = dto.venda.formaPagamento || '';
-      },
-      error: (err) => {
-        // Erro silencioso para não interferir na experiência do usuário
-      }
-    });
-  }
-
-  listarItensCarrinho(): void {
-    // Carrega todos os itens não finalizados do carrinho
-    this.carrinhoService.getItensNaoFinalizados().subscribe({
-      next: (response) => {
-        this.itensCarrinho = response;
-        this.calcularTotal();
-        
-        // Se houver itens no carrinho, garantir que o vendaId está atualizado
-        if (this.itensCarrinho.length > 0) {
-          this.carrinhoService.getVendaAberta().subscribe({
-            next: (id) => {
-              this.vendaId = id;
-              // Atualiza o footer sempre que o carrinho muda
-              this.footerService.updateFooter();
-            },
-            error: (err) => {
-              // Atualiza o footer mesmo em caso de erro
-              this.footerService.updateFooter();
-            }
-          });
-        } else {
-          this.vendaId = null;
-          // Atualiza o footer quando o carrinho fica vazio
-          this.footerService.updateFooter();
-        }
-      },
-      error: (err) => {
-        this.carrinhoService.message('Erro ao listar itens do carrinho!', true);
-        // Atualiza o footer em caso de erro
-        this.footerService.updateFooter();
-      }
-    });
-  }
-
-  removerItem(id: number): void {
-    // Remove um item específico do carrinho
-    this.carrinhoService.delete(id).subscribe(() => {
-      this.listarItensCarrinho();
-      this.carrinhoService.message('Item removido do carrinho!');
-    });
-  }
-
-  alterarQuantidade(id: number, quantidade: number): void {
-    // Atualiza a quantidade de um item específico
-    this.carrinhoService.updateQuantidade(id, quantidade).subscribe(() => {
-      this.listarItensCarrinho();
-    });
-  }
-
-  calcularTotal(): void {
-    // Calcula o valor total do carrinho baseado nos itens e suas quantidades
-    this.totalCarrinho = this.itensCarrinho.reduce((total, item) => {
-      return total + (item.valorUnitario * item.quantidade);
-    }, 0);
-  }
-
+  /**
+   * Busca cliente por CPF
+   */
   buscarClientePorCpf(): void {
-    // Valida o CPF antes de fazer a busca
-    if (!this.cpfCliente || this.cpfCliente.length !== 11) {
-      this.carrinhoService.message('CPF inválido. Por favor, insira um CPF válido.', true);
+    const cpf = this.checkoutForm.get('cpfCliente')?.value;
+    
+    if (!cpf || cpf.length !== 11) {
+      this.cartClientService.message('CPF inválido. Digite um CPF válido com 11 dígitos.', true);
       return;
     }
 
     this.buscandoCliente = true;
-    this.carrinhoService.buscarClientePorCpf(this.cpfCliente).subscribe({
+    this.cartClientService.buscarClientePorCpf(cpf).subscribe({
       next: (cliente) => {
-        // Preenche os dados do cliente encontrado
-        this.nomeCliente = cliente.nome;
-        this.telefoneCliente = cliente.telefone;
-        this.clienteId = cliente.id;
-        
-        // Define o endereço apenas para entrega
-        if (this.tipoAtendimento === 'ENTREGA') {
-          this.enderecoCliente = cliente.endereco;
-        } else if (this.tipoAtendimento === 'RETIRADA') {
-          this.enderecoCliente = '';
-        }
-        
-        this.clienteEncontrado = true;
-        this.buscandoCliente = false;
-        this.carrinhoService.message('Cliente encontrado e dados preenchidos com sucesso!');
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        // Limpa os dados quando o cliente não é encontrado
-        this.carrinhoService.message('Cliente não encontrado. Por favor, cadastre-o na tela de clientes.', true);
-        this.nomeCliente = '';
-        this.enderecoCliente = '';
-        this.telefoneCliente = '';
-        this.clienteEncontrado = false;
-        this.buscandoCliente = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  buscarCliente(): void {
-    // Valida o CPF antes de fazer a busca
-    if (!this.cpfCliente || this.cpfCliente.length !== 11) {
-      this.carrinhoService.message('CPF inválido. Por favor, insira um CPF válido.', true);
-      return;
-    }
-
-    this.buscandoCliente = true;
-    this.carrinhoService.buscarClientePorCpf(this.cpfCliente).subscribe({
-      next: (cliente) => {
-        // Preenche os dados do cliente encontrado
-        this.nomeCliente = cliente.nome;
-        this.telefoneCliente = cliente.telefone;
-        this.clienteId = cliente.id;
-        
-        // Define o endereço apenas para entrega
-        if (this.tipoAtendimento === 'ENTREGA') {
-          this.enderecoCliente = cliente.endereco;
-        } else if (this.tipoAtendimento === 'RETIRADA') {
-          this.enderecoCliente = '';
-        }
-        
-        this.clienteEncontrado = true;
-        this.buscandoCliente = false;
-        this.carrinhoService.message('Cliente encontrado e dados preenchidos com sucesso!');
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        // Limpa os dados quando o cliente não é encontrado
-        this.carrinhoService.message('Cliente não encontrado. Por favor, cadastre-o na tela de clientes.', true);
-        this.nomeCliente = '';
-        this.enderecoCliente = '';
-        this.telefoneCliente = '';
-        this.clienteEncontrado = false;
-        this.buscandoCliente = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-
-
-  // Constrói o payload para envio ao backend
-  private buildPayload(): any {
-    // Formata os itens do carrinho para o formato esperado pelo backend
-    const itensFormatados = this.itensCarrinho.map(item => ({
-      produtoId: item.produtoId ?? null,
-      quantidade: item.quantidade ?? null,
-      valorUnitario: item.valorUnitario ?? null,
-      observacao: item.observacao ?? ''
-    }));
-
-    // Calcula o valor total dos itens
-    const valorTotal = itensFormatados.reduce((soma, item) => soma + (item.valorUnitario * item.quantidade), 0);
-
-    // Constrói o objeto de dados para envio
-    const payload: any = {
-      clienteId: this.clienteId ?? null,
-      valorTotal: valorTotal,
-      status: 'PENDENTE',
-      quantidadeItens: itensFormatados.length,
-      numeroMesa: this.tipoAtendimento === 'MESA' ? String(this.mesa ?? '') : '',
-      formaPagamento: this.formaPagamento || '',
-      tipoAtendimento: this.tipoAtendimento || '',
-      cpfCliente: this.cpfCliente || '',
-      nomeCliente: this.nomeCliente || '',
-      enderecoCliente: this.enderecoCliente || '',
-      telefoneCliente: this.telefoneCliente || '',
-      telefoneCliente2: this.telefoneCliente2 || '',
-      observacaoGeral: this.observacaoVenda || '',
-      itens: itensFormatados
-    };
-
-    // Adiciona horarioRetirada APENAS para tipo RETIRADA
-    if (this.tipoAtendimento === 'RETIRADA' && this.horarioRetirada) {
-      payload.horarioRetirada = this.formatTimeToHHmmss(this.horarioRetirada);
-    }
-
-    return payload;
-  }
-
-
-  // Solicita um pedido com status PENDENTE (aguardando aprovação)
-  solicitarPedido(): void {
-    // Verifica se já está processando para evitar requisições duplicadas
-    if (this.finalizandoVenda) return;
-    
-    // Validações obrigatórias
-    if (!this.itensCarrinho.length) {
-      this.carrinhoService.message('Adicione itens ao carrinho antes de solicitar o pedido.', true);
-      return;
-    }
-    if (!this.tipoAtendimento || (this.tipoAtendimento === 'MESA' && !this.mesa)) {
-      this.carrinhoService.message('Preencha o tipo de atendimento corretamente.', true);
-      return;
-    }
-    
-    // Validações específicas para RETIRADA
-    if (this.tipoAtendimento === 'RETIRADA') {
-      if (!this.cpfCliente) {
-        this.carrinhoService.message('CPF do cliente é obrigatório para retirada.', true);
-        return;
-      }
-      if (!this.horarioRetirada) {
-        this.carrinhoService.message('Horário de retirada é obrigatório.', true);
-        return;
-      }
-      if (!this.isValidTimeFormat(this.horarioRetirada)) {
-        this.carrinhoService.message('Formato de horário inválido. Use HH:mm (ex: 14:30)', true);
-        return;
-      }
-    }
-    
-    // Validações específicas para ENTREGA
-    if (this.tipoAtendimento === 'ENTREGA') {
-      if (!this.cpfCliente) {
-        this.carrinhoService.message('CPF do cliente é obrigatório para entrega.', true);
-        return;
-      }
-      if (!this.enderecoCliente) {
-        this.carrinhoService.message('Endereço é obrigatório para entrega.', true);
-        return;
-      }
-    }
-    
-    this.finalizandoVenda = true;
-    
-    // Constrói o payload com status PENDENTE para aguardar aprovação
-    const payload = {
-      ...this.buildPayload(),
-      status: 'PENDENTE',
-    };
-    
-    // Envia a solicitação do pedido
-    this.pedidoService.create(payload).subscribe({
-      next: () => {
-        this.carrinhoService.message('Pedido solicitado com sucesso! Aguarde aprovação.');
-        this.limparCarrinho(() => {
-          this.resetForm();
-          this.finalizandoVenda = false;
+        // Preenche dados do cliente encontrado
+        this.checkoutForm.patchValue({
+          nomeCliente: cliente.nome,
+          telefoneCliente: cliente.telefone,
+          enderecoCliente: cliente.endereco || ''
         });
+        
+        this.clienteEncontrado = true;
+        this.buscandoCliente = false;
+        this.cartClientService.message('Cliente encontrado com sucesso!');
       },
       error: () => {
-        this.carrinhoService.message('Erro ao solicitar pedido!', true);
-        this.finalizandoVenda = false;
+        this.cartClientService.message('Cliente não encontrado. Dados devem ser preenchidos manualmente.', true);
+        this.clienteEncontrado = false;
+        this.buscandoCliente = false;
       }
     });
   }
-
-  // Reseta todos os campos do formulário para o estado inicial
-  private resetForm(): void {
-    this.vendaId = null;
-    this.listarItensCarrinho();
-    this.obterVendaAberta();
-    this.refreshService.triggerRefresh();
-    this.finalizandoVenda = false;
-    this.tipoAtendimento = '';
-    this.formaPagamento = '';
-    this.mesa = null;
-    this.valorDesconto = null;
-    this.valorAcrescimo = null;
-    this.nomeDesconto = '';
-    this.nomeAcrescimo = '';
-    this.observacaoVenda = '';
-    this.cpfCliente = '';
-    this.nomeCliente = '';
-    this.enderecoCliente = '';
-    this.telefoneCliente = '';
-    this.telefoneCliente2 = '';
-    this.horarioEntrega = '';
-    this.horarioRetirada = '';
-    this.clienteEncontrado = false;
-    this.clienteId = null;
-  }
-
 
   /**
-   * Salva os itens do carrinho como assinadas no backend
-   * @returns Observable com o resultado das operações
+   * Verifica se precisa de dados do cliente
    */
-  private salvarAssinadas(): Observable<any> {
-    // Valida se há dados necessários para criar assinadas
-    if (!this.vendaId || this.itensCarrinho.length === 0) {
-      this.carrinhoService.message('Adicione itens ao carrinho antes de salvar como assinada.', true);
-      return of(null);
+  needsCustomerData(): boolean {
+    const tipo = this.checkoutForm.get('tipoAtendimento')?.value;
+    return tipo === 'ENTREGA' || tipo === 'RETIRADA';
+  }
+
+  /**
+   * Limpa o carrinho
+   */
+  clearCart(): void {
+    this.cartClientService.clearCart();
+  }
+
+  /**
+   * Verifica se carrinho está vazio
+   */
+  isCartEmpty(): boolean {
+    return this.cartClientService.isEmpty();
+  }
+
+  /**
+   * Criar solicitação de venda
+   */
+  async criarSolicitacao(): Promise<void> {
+    if (this.finalizandoVenda) return;
+
+    // Validar formulário
+    this.checkoutForm.markAllAsTouched();
+    if (!this.checkoutForm.valid) {
+      this.cartClientService.message('Preencha todos os campos obrigatórios.', true);
+      return;
     }
 
-    const dataHora = new Date().toISOString();
+    // Validar carrinho
+    if (this.isCartEmpty()) {
+      this.cartClientService.message('Adicione itens ao carrinho antes de enviar o pedido.', true);
+      return;
+    }
 
-    // Cria uma requisição de assinada para cada item do carrinho
-    const assinadasRequests = this.itensCarrinho.map(item => {
-      const assinada: Assinada = {
-        vendaId: this.vendaId!,
-        produtoId: item.produtoId!,
-        cliente: { id: this.clienteId! },
-        dataHora,
-        valorUnitario: item.valorUnitario,
-        quantidade: item.quantidade,
-        valorTotal: item.valorTotal,
-        status: this.status
+    try {
+      this.finalizandoVenda = true;
+
+      // Preparar dados da solicitação
+      const formData = this.checkoutForm.value;
+      const saleData: ClientSaleData = {
+        tipoAtendimento: formData.tipoAtendimento,
+        formaPagamento: formData.formaPagamento,
+        mesa: formData.mesa,
+        horarioRetirada: formData.horarioRetirada,
+        observacoes: formData.observacoes
       };
 
-      return this.assinadaService.create(assinada);
-    });
+      const request: SolicitacaoVendaRequest = this.cartClientService.prepareSolicitation(saleData);
 
-    // Executa todas as requisições em paralelo
-    return forkJoin(assinadasRequests);
-  }
-
-  // Remove todos os itens do carrinho
-  private limparCarrinho(callback?: () => void): void {
-    // Se não há itens, executa callback diretamente
-    if (this.itensCarrinho.length === 0) {
-      if (callback) callback();
-      return;
-    }
-    
-    // Remove todos os itens em paralelo
-    forkJoin(this.itensCarrinho.map(item => this.carrinhoService.delete(item.id!))).subscribe({
-      next: () => {
-        this.listarItensCarrinho();
-        if (callback) callback();
-      },
-      error: () => {
-        this.carrinhoService.message('Erro ao limpar o carrinho!', true);
-        if (callback) callback();
+      // Adicionar dados do cliente se necessário
+      if (this.needsCustomerData()) {
+        request.cpfCliente = formData.cpfCliente;
+        request.nomeCliente = formData.nomeCliente;
+        request.telefoneCliente = formData.telefoneCliente;
+        
+        if (formData.tipoAtendimento === 'ENTREGA') {
+          request.enderecoCliente = formData.enderecoCliente;
+        }
       }
-    });
-  }
 
-  // Setter e getter para tipo de atendimento com lógica de negócio
-  set tipoAtendimento(value: string) {
-    this._tipoAtendimento = value;
-    // Se o tipo for COMANDA, automaticamente define a forma de pagamento
-    if (value === 'COMANDA') {
-      this.formaPagamento = 'COMANDA';
+      // Enviar solicitação
+      const response = await this.cartClientService.criarSolicitacao(request).toPromise();
+
+      // Sucesso!
+      this.cartClientService.clearCart();
+      this.resetForm();
+      this.cartClientService.message(
+        response?.mensagem || 'Pedido enviado com sucesso! Aguardando confirmação do estabelecimento.'
+      );
+      
+      // Redirecionar para página de sucesso ou home
+      this.router.navigate(['/home']);
+
+    } catch (error) {
+      console.error('Erro ao enviar pedido:', error);
+      this.cartClientService.message('Erro ao enviar pedido. Tente novamente.', true);
+    } finally {
+      this.finalizandoVenda = false;
     }
   }
-  
-  get tipoAtendimento(): string {
-    return this._tipoAtendimento;
-  }
-
 
   /**
-   * Finaliza a venda criando um pedido diretamente (sem aguardar aprovação)
+   * Reseta o formulário
    */
-  finalizarVenda(): void {
-    // Verifica se já está processando para evitar requisições duplicadas
-    if (this.finalizandoVenda) {
-      return;
-    }
+  private resetForm(): void {
+    this.checkoutForm.reset({
+      tipoAtendimento: 'BALCAO',
+      formaPagamento: 'DINHEIRO',
+      mesa: '',
+      horarioRetirada: '',
+      cpfCliente: '',
+      nomeCliente: '',
+      telefoneCliente: '',
+      enderecoCliente: '',
+      observacoes: ''
+    });
     
-    // Validação básica de itens no carrinho
-    if (!this.itensCarrinho.length) {
-      this.carrinhoService.message('Adicione itens ao carrinho antes de criar o pedido.', true);
-      return;
-    }
+    this.clienteEncontrado = false;
+    this.buscandoCliente = false;
+  }
 
-    // Validações específicas baseadas no tipo de atendimento
-    if ((this.tipoAtendimento === 'ENTREGA' || this.tipoAtendimento === 'RETIRADA' || this.tipoAtendimento === 'COMANDA') && !this.cpfCliente) {
-      this.carrinhoService.message('CPF do cliente é obrigatório para entrega ou retirada.', true);
-      return;
-    }
-    
-    // Validações específicas para RETIRADA
-    if (this.tipoAtendimento === 'RETIRADA') {
-      if (!this.horarioRetirada) {
-        this.carrinhoService.message('Horário de retirada é obrigatório.', true);
-        return;
-      }
-      if (!this.isValidTimeFormat(this.horarioRetirada)) {
-        this.carrinhoService.message('Formato de horário inválido. Use HH:mm (ex: 14:30)', true);
-        return;
-      }
-    }
-    
-    // Validações específicas para ENTREGA
-    if (this.tipoAtendimento === 'ENTREGA') {
-      if (!this.enderecoCliente) {
-        this.carrinhoService.message('Endereço é obrigatório para entrega.', true);
-        return;
-      }
-    }
-    if (this.valorDesconto && !this.nomeDesconto) {
-      this.carrinhoService.message('Nome do desconto é obrigatório quando há valor de desconto.', true);
-      return;
-    }
-    if (this.valorAcrescimo && !this.nomeAcrescimo) {
-      this.carrinhoService.message('Nome do acréscimo é obrigatório quando há valor de acréscimo.', true);
-      return;
-    }
-    if (!this.tipoAtendimento) {
-      this.carrinhoService.message('Selecione o tipo de atendimento.', true);
-      return;
-    }
-    if (!this.formaPagamento) {
-      this.carrinhoService.message('Selecione a forma de pagamento.', true);
-      return;
-    }
-    if (this.tipoAtendimento === 'MESA' && !this.mesa) {
-      this.carrinhoService.message('Informe o número da mesa.', true);
-      return;
-    }
-    
-    this.finalizandoVenda = true;
-    const payload = this.buildPayload();
-
-    // Verifica se há uma venda aberta para finalizar
-    if (!this.vendaId) {
-      this.carrinhoService.message('Nenhuma venda aberta para finalizar!', true);
-      this.finalizandoVenda = false;
-      return;
-    }
-
-    // Finaliza a venda existente usando o CarrinhoService
-    this.carrinhoService.finalizarVenda(this.vendaId, payload).subscribe({
-      next: (res) => {
-        this.carrinhoService.message('Pedido criado com sucesso!');
-        this.limparCarrinho(() => {
-          this.resetForm();
-          this.finalizandoVenda = false;
-        });
-      },
-      error: (err) => {
-        console.error('Erro ao finalizar venda:', err);
-        this.carrinhoService.message('Erro ao criar pedido!', true);
-        this.finalizandoVenda = false;
-      }
+  /**
+   * Marca todos os campos como tocados para exibir erros
+   */
+  private markAllFieldsAsTouched(): void {
+    Object.keys(this.checkoutForm.controls).forEach(key => {
+      this.checkoutForm.get(key)?.markAsTouched();
     });
   }
 
+  /**
+   * Verifica se um campo é obrigatório e tem erro
+   */
+  hasRequiredError(fieldName: string): boolean {
+    const field = this.checkoutForm.get(fieldName);
+    return !!(field?.hasError('required') && field?.touched);
+  }
 
+  /**
+   * Obtém mensagem de erro para um campo
+   */
+  getFieldError(fieldName: string): string {
+    const field = this.checkoutForm.get(fieldName);
+    
+    if (field?.hasError('required')) {
+      return `${this.getFieldLabel(fieldName)} é obrigatório`;
+    }
+    
+    return '';
+  }
 
-
+  /**
+   * Obtém o label de um campo
+   */
+  private getFieldLabel(fieldName: string): string {
+    const labels: { [key: string]: string } = {
+      tipoAtendimento: 'Tipo de atendimento',
+      formaPagamento: 'Forma de pagamento',
+      mesa: 'Número da mesa',
+      horarioRetirada: 'Horário de retirada',
+      cpfCliente: 'CPF do cliente',
+      nomeCliente: 'Nome do cliente',
+      telefoneCliente: 'Telefone do cliente',
+      enderecoCliente: 'Endereço de entrega'
+    };
+    
+    return labels[fieldName] || fieldName;
+  }
 }

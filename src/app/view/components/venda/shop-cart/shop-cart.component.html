@@ -1,6 +1,6 @@
 <div class="cart-container">
   <!-- Estado vazio do carrinho -->
-  <div *ngIf="itensCarrinho.length === 0" class="empty-cart">
+  <div *ngIf="isCartEmpty()" class="empty-cart">
     <div class="empty-icon">
       <i class='bx bx-cart'></i>
     </div>
@@ -9,20 +9,22 @@
   </div>
 
   <!-- Header do carrinho com itens -->
-  <div *ngIf="itensCarrinho.length > 0" class="cart-header">
+  <div *ngIf="!isCartEmpty()" class="cart-header">
     <div class="cart-title">
       <i class='bx bx-cart'></i>
       <h3>Carrinho de Compras</h3>
     </div>
-    <span class="items-count">{{ itensCarrinho.length }} item(s)</span>
+    <span class="items-count">{{ cart.quantidadeItens }} item(s)</span>
   </div>
 
   <!-- Lista de itens do carrinho -->
-  <div *ngIf="itensCarrinho.length > 0" class="cart-items">
-    <div *ngFor="let item of itensCarrinho" class="cart-item">
+  <div *ngIf="!isCartEmpty()" class="cart-items">
+    <div *ngFor="let item of cart.items" class="cart-item">
       <div class="item-details">
-        <h4 class="item-name">{{ item.produto }}</h4>
-        <span *ngIf="item.categoriaId && getCategoriaNome(item.categoriaId)" class="item-category">{{ getCategoriaNome(item.categoriaId) }}</span>
+        <h4 class="item-name">{{ item.nomeProduto }}</h4>
+        <span *ngIf="item.categoriaId && getCategoriaNome(item.categoriaId)" class="item-category">
+          {{ getCategoriaNome(item.categoriaId) }}
+        </span>
         <div class="item-price">R$ {{ item.valorUnitario.toFixed(2) }} (un.)</div>
         <p *ngIf="item.observacao && item.observacao.trim() !== ''" class="item-note">
           <i class='bx bx-note'></i>
@@ -34,7 +36,7 @@
         <div class="quantity-controls">
           <button 
             class="qty-btn minus" 
-            (click)="alterarQuantidade(item.id, item.quantidade - 1)"
+            (click)="updateItemQuantity(item.id, item.quantidade - 1)"
             [disabled]="item.quantidade <= 1"
             aria-label="Diminuir quantidade">
             <i class='bx bx-minus'></i>
@@ -42,14 +44,14 @@
           <span class="quantity">{{ item.quantidade }}</span>
           <button 
             class="qty-btn plus" 
-            (click)="alterarQuantidade(item.id, item.quantidade + 1)"
+            (click)="updateItemQuantity(item.id, item.quantidade + 1)"
             aria-label="Aumentar quantidade">
             <i class='bx bx-plus'></i>
           </button>
         </div>
         <button 
           class="remove-btn" 
-          (click)="removerItem(item.id)"
+          (click)="removeItem(item.id)"
           aria-label="Remover item do carrinho">
           <i class='bx bx-trash'></i>
         </button>
@@ -58,17 +60,17 @@
   </div>
 
   <!-- Footer do carrinho com total e formulário -->
-  <div *ngIf="itensCarrinho.length > 0" class="cart-footer">
+  <div *ngIf="!isCartEmpty()" class="cart-footer">
     <!-- Total -->
     <div class="total-section">
       <div class="total-row">
         <span class="total-label">Total do Pedido:</span>
-        <span class="total-amount">R$ {{ totalCarrinho.toFixed(2) }}</span>
+        <span class="total-amount">R$ {{ cart.valorTotal.toFixed(2) }}</span>
       </div>
     </div>
 
-    <!-- Formulário de finalização -->
-    <form #finalizaForm="ngForm" (ngSubmit)="solicitarPedido()" autocomplete="off" class="order-form">
+    <!-- Formulário de checkout -->
+    <form [formGroup]="checkoutForm" (ngSubmit)="criarSolicitacao()" autocomplete="off" class="order-form">
       <div class="form-section">
         <h4 class="section-title">
           <i class='bx bx-clipboard'></i>
@@ -79,49 +81,43 @@
         <div class="form-group">
           <label class="form-label">Tipo de Atendimento *</label>
           <div class="service-types">
-            <input type="radio" id="mesa" value="MESA" [(ngModel)]="tipoAtendimento" name="tipoAtendimento" required>
-            <label for="mesa" class="service-option">
-              <i class='bx bx-table'></i>
-              Mesa
-            </label>
-            
-            <input type="radio" id="balcao" value="BALCAO" [(ngModel)]="tipoAtendimento" name="tipoAtendimento">
-            <label for="balcao" class="service-option">
-              <i class='bx bx-store'></i>
-              Balcão
-            </label>
-            
-            <input type="radio" id="entrega" value="ENTREGA" [(ngModel)]="tipoAtendimento" name="tipoAtendimento">
-            <label for="entrega" class="service-option">
-              <i class='bx bx-package'></i>
-              Entrega
-            </label>
-            
-            <input type="radio" id="retirada" value="RETIRADA" [(ngModel)]="tipoAtendimento" name="tipoAtendimento">
-            <label for="retirada" class="service-option">
-              <i class='bx bx-time'></i>
-              Retirada
-            </label>
+            <div *ngFor="let tipo of tiposAtendimento" class="service-option-wrapper">
+              <input 
+                type="radio" 
+                [id]="tipo.value" 
+                [value]="tipo.value" 
+                formControlName="tipoAtendimento"
+                name="tipoAtendimento">
+              <label [for]="tipo.value" class="service-option">
+                <i [ngClass]="tipo.value === 'BALCAO' ? 'bx bx-store' : tipo.value === 'MESA' ? 'bx bx-table' : tipo.value === 'ENTREGA' ? 'bx bx-package' : tipo.value === 'RETIRADA' ? 'bx bx-time' : 'bx bx-help-circle'"></i>
+                {{ tipo.label }}
+              </label>
+            </div>
+          </div>
+          <div *ngIf="hasRequiredError('tipoAtendimento')" class="error-message">
+            {{ getFieldError('tipoAtendimento') }}
           </div>
         </div>
 
-        <!-- Campos específicos por tipo de atendimento -->
-        <div *ngIf="tipoAtendimento === 'MESA'" class="conditional-fields">
+        <!-- Campo para mesa (se tipo MESA) -->
+        <div *ngIf="checkoutForm.get('tipoAtendimento')?.value === 'MESA'" class="conditional-fields">
           <div class="form-group">
-            <label for="mesaNumero" class="form-label">Número da Mesa *</label>
+            <label for="mesa" class="form-label">Número da Mesa *</label>
             <input 
-              type="number" 
-              id="mesaNumero"
-              [(ngModel)]="mesa" 
-              name="mesa" 
+              type="text" 
+              id="mesa"
+              formControlName="mesa"
               placeholder="Ex: 5"
               class="form-input"
-              required 
-              min="1">
+              [class.error]="hasRequiredError('mesa')">
+            <div *ngIf="hasRequiredError('mesa')" class="error-message">
+              {{ getFieldError('mesa') }}
+            </div>
           </div>
         </div>
 
-        <div *ngIf="tipoAtendimento === 'ENTREGA'" class="conditional-fields">
+        <!-- Campos para ENTREGA -->
+        <div *ngIf="checkoutForm.get('tipoAtendimento')?.value === 'ENTREGA'" class="conditional-fields">
           <div class="delivery-info">
             <i class='bx bx-time-five'></i>
             <span>Tempo estimado: 30 min a 1 hora</span>
@@ -133,20 +129,55 @@
               <input 
                 type="text" 
                 id="cpfEntrega"
-                [(ngModel)]="cpfCliente" 
-                name="cpfClienteEntrega" 
+                formControlName="cpfCliente"
                 maxlength="11" 
                 minlength="11" 
-                required 
                 placeholder="00000000000"
-                class="form-input">
+                class="form-input"
+                [class.error]="hasRequiredError('cpfCliente')">
               <button 
                 type="button" 
                 class="search-btn"
-                (click)="buscarCliente()" 
-                [disabled]="buscandoCliente || !cpfCliente || cpfCliente.length !== 11">
-                <i class='bx bx-search'></i>
+                (click)="buscarClientePorCpf()" 
+                [disabled]="buscandoCliente || !checkoutForm.get('cpfCliente')?.value || checkoutForm.get('cpfCliente')?.value.length !== 11">
+                <i class='bx bx-search' *ngIf="!buscandoCliente"></i>
+                <i class='bx bx-loader-alt rotating' *ngIf="buscandoCliente"></i>
               </button>
+            </div>
+            <div *ngIf="hasRequiredError('cpfCliente')" class="error-message">
+              {{ getFieldError('cpfCliente') }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="nomeEntrega" class="form-label">Nome do Cliente *</label>
+            <input 
+              type="text" 
+              id="nomeEntrega"
+              formControlName="nomeCliente"
+              placeholder="Nome completo"
+              class="form-input"
+              [class.readonly]="clienteEncontrado"
+              [readonly]="clienteEncontrado"
+              [class.error]="hasRequiredError('nomeCliente')">
+            <div *ngIf="hasRequiredError('nomeCliente')" class="error-message">
+              {{ getFieldError('nomeCliente') }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="telefoneEntrega" class="form-label">Telefone *</label>
+            <input 
+              type="tel" 
+              id="telefoneEntrega"
+              formControlName="telefoneCliente"
+              placeholder="(00) 00000-0000"
+              class="form-input"
+              [class.readonly]="clienteEncontrado"
+              [readonly]="clienteEncontrado"
+              [class.error]="hasRequiredError('telefoneCliente')">
+            <div *ngIf="hasRequiredError('telefoneCliente')" class="error-message">
+              {{ getFieldError('telefoneCliente') }}
             </div>
           </div>
           
@@ -155,28 +186,39 @@
             <input 
               type="text" 
               id="endereco"
-              [(ngModel)]="enderecoCliente" 
-              name="enderecoCliente" 
-              required 
+              formControlName="enderecoCliente"
               placeholder="Rua, número, bairro"
-              class="form-input">
-          </div>
-          
-          <div *ngIf="nomeCliente" class="form-group">
-            <label class="form-label">Nome do Cliente</label>
-            <input [(ngModel)]="nomeCliente" name="nomeCliente" readonly class="form-input readonly">
-          </div>
-          
-          <div *ngIf="telefoneCliente" class="form-group">
-            <label class="form-label">Telefone</label>
-            <input [(ngModel)]="telefoneCliente" name="telefoneCliente" readonly class="form-input readonly">
+              class="form-input"
+              [class.error]="hasRequiredError('enderecoCliente')">
+            <div *ngIf="hasRequiredError('enderecoCliente')" class="error-message">
+              {{ getFieldError('enderecoCliente') }}
+            </div>
           </div>
         </div>
 
-        <div *ngIf="tipoAtendimento === 'RETIRADA'" class="conditional-fields">
+        <!-- Campos para RETIRADA -->
+        <div *ngIf="checkoutForm.get('tipoAtendimento')?.value === 'RETIRADA'" class="conditional-fields">
           <div class="pickup-info">
             <i class='bx bx-time'></i>
-            <span>Escolha o horário para retirada (hoje)</span>
+            <span>Prepare seu pedido para retirar no local</span>
+          </div>
+
+          <!-- Campo para horário de retirada -->
+          <div class="form-group">
+            <label for="horarioRetirada" class="form-label">Horário de Retirada *</label>
+            <input 
+              type="time" 
+              id="horarioRetirada"
+              formControlName="horarioRetirada"
+              class="form-input"
+              [class.error]="hasRequiredError('horarioRetirada')">
+            <div class="time-hint">
+              <i class='bx bx-info-circle'></i>
+              <span>Informe o horário desejado para retirada (HH:mm)</span>
+            </div>
+            <div *ngIf="hasRequiredError('horarioRetirada')" class="error-message">
+              {{ getFieldError('horarioRetirada') }}
+            </div>
           </div>
           
           <div class="form-group">
@@ -185,43 +227,56 @@
               <input 
                 type="text" 
                 id="cpfRetirada"
-                [(ngModel)]="cpfCliente" 
-                name="cpfCliente" 
+                formControlName="cpfCliente"
                 maxlength="11" 
                 minlength="11" 
-                required 
                 placeholder="00000000000"
-                class="form-input">
+                class="form-input"
+                [class.error]="hasRequiredError('cpfCliente')">
               <button 
                 type="button" 
                 class="search-btn"
                 (click)="buscarClientePorCpf()" 
-                [disabled]="buscandoCliente || !cpfCliente || cpfCliente.length !== 11">
-                <i class='bx bx-search'></i>
+                [disabled]="buscandoCliente || !checkoutForm.get('cpfCliente')?.value || checkoutForm.get('cpfCliente')?.value.length !== 11">
+                <i class='bx bx-search' *ngIf="!buscandoCliente"></i>
+                <i class='bx bx-loader-alt rotating' *ngIf="buscandoCliente"></i>
               </button>
+            </div>
+            <div *ngIf="hasRequiredError('cpfCliente')" class="error-message">
+              {{ getFieldError('cpfCliente') }}
             </div>
           </div>
           
           <div class="form-group">
-            <label for="horario" class="form-label">Horário para Retirada *</label>
+            <label for="nomeRetirada" class="form-label">Nome do Cliente *</label>
             <input 
-              type="time" 
-              id="horario"
-              [(ngModel)]="horarioRetirada" 
-              name="horarioRetirada" 
-              required 
-              (ngModelChange)="onHorarioRetiradaChange($event)"
-              class="form-input">
+              type="text" 
+              id="nomeRetirada"
+              formControlName="nomeCliente"
+              placeholder="Nome completo"
+              class="form-input"
+              [class.readonly]="clienteEncontrado"
+              [readonly]="clienteEncontrado"
+              [class.error]="hasRequiredError('nomeCliente')">
+            <div *ngIf="hasRequiredError('nomeCliente')" class="error-message">
+              {{ getFieldError('nomeCliente') }}
+            </div>
           </div>
           
-          <div *ngIf="nomeCliente" class="form-group">
-            <label class="form-label">Nome do Cliente</label>
-            <input [(ngModel)]="nomeCliente" name="nomeCliente" readonly class="form-input readonly">
-          </div>
-          
-          <div *ngIf="telefoneCliente" class="form-group">
-            <label class="form-label">Telefone</label>
-            <input [(ngModel)]="telefoneCliente" name="telefoneCliente" readonly class="form-input readonly">
+          <div class="form-group">
+            <label for="telefoneRetirada" class="form-label">Telefone *</label>
+            <input 
+              type="tel" 
+              id="telefoneRetirada"
+              formControlName="telefoneCliente"
+              placeholder="(00) 00000-0000"
+              class="form-input"
+              [class.readonly]="clienteEncontrado"
+              [readonly]="clienteEncontrado"
+              [class.error]="hasRequiredError('telefoneCliente')">
+            <div *ngIf="hasRequiredError('telefoneCliente')" class="error-message">
+              {{ getFieldError('telefoneCliente') }}
+            </div>
           </div>
         </div>
 
@@ -229,29 +284,21 @@
         <div class="form-group">
           <label class="form-label">Forma de Pagamento *</label>
           <div class="payment-methods">
-            <input type="radio" id="dinheiro" value="DINHEIRO" [(ngModel)]="formaPagamento" name="formaPagamento" required>
-            <label for="dinheiro" class="payment-option">
-              <i class='bx bx-money'></i>
-              Dinheiro
-            </label>
-            
-            <input type="radio" id="cartao" value="CARTAO" [(ngModel)]="formaPagamento" name="formaPagamento">
-            <label for="cartao" class="payment-option">
-              <i class='bx bx-credit-card'></i>
-              Cartão
-            </label>
-            
-            <input type="radio" id="pix" value="PIX" [(ngModel)]="formaPagamento" name="formaPagamento">
-            <label for="pix" class="payment-option">
-              <i class='bx bx-qr'></i>
-              Pix
-            </label>
-            
-            <input type="radio" id="vales" value="VALES" [(ngModel)]="formaPagamento" name="formaPagamento">
-            <label for="vales" class="payment-option">
-              <i class='bx bx-receipt'></i>
-              Vales
-            </label>
+            <div *ngFor="let pagamento of formasPagamento" class="payment-option-wrapper">
+              <input 
+                type="radio" 
+                [id]="pagamento.value" 
+                [value]="pagamento.value" 
+                formControlName="formaPagamento"
+                name="formaPagamento">
+              <label [for]="pagamento.value" class="payment-option">
+                <i [ngClass]="pagamento.value === 'DINHEIRO' ? 'bx bx-money' : pagamento.value === 'CARTAO' ? 'bx bx-credit-card' : pagamento.value === 'PIX' ? 'bx bx-qr' : pagamento.value === 'VALES' ? 'bx bx-gift' : 'bx bx-help-circle'"></i>
+                {{ pagamento.label }}
+              </label>
+            </div>
+          </div>
+          <div *ngIf="hasRequiredError('formaPagamento')" class="error-message">
+            {{ getFieldError('formaPagamento') }}
           </div>
         </div>
 
@@ -260,23 +307,34 @@
           <label for="observacoes" class="form-label">Observações do Pedido</label>
           <textarea 
             id="observacoes"
-            [(ngModel)]="observacaoVenda" 
-            name="observacaoVenda" 
+            formControlName="observacoes"
             rows="3"
             placeholder="Observações gerais do pedido..."
             class="form-textarea"></textarea>
         </div>
       </div>
 
-      <!-- Botão de finalizar -->
-      <button 
-        type="submit" 
-        class="submit-btn"
-        [disabled]="finalizandoVenda || !tipoAtendimento || (tipoAtendimento === 'MESA' && !mesa)"
-        [class.loading]="finalizandoVenda">
-        <i class='bx bx-send'></i>
-        <span>{{ finalizandoVenda ? 'Processando...' : 'Solicitar Pedido' }}</span>
-      </button>
+      <!-- Botões de ação -->
+      <div class="action-buttons">
+        <button 
+          type="button" 
+          class="clear-btn"
+          (click)="clearCart()"
+          [disabled]="finalizandoVenda">
+          <i class='bx bx-trash'></i>
+          Limpar Carrinho
+        </button>
+        
+        <button 
+          type="submit" 
+          class="submit-btn"
+          [disabled]="finalizandoVenda || checkoutForm.invalid || isCartEmpty()"
+          [class.loading]="finalizandoVenda">
+          <i class='bx bx-send' *ngIf="!finalizandoVenda"></i>
+          <i class='bx bx-loader-alt rotating' *ngIf="finalizandoVenda"></i>
+          <span>{{ finalizandoVenda ? 'Enviando...' : 'Enviar Pedido' }}</span>
+        </button>
+      </div>
     </form>
   </div>
 </div>

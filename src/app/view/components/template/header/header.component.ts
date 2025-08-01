@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { NgIf, NgClass } from '@angular/common';
 import { AuthService } from '../../../../services/auth.service';
-import { CarrinhoService } from '../../../../services/carrinho.service';
+import { CartClientService } from '../../../../services/cart-client.service';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { ItemDTO } from '../../../../models/item-dto';
 
 @Component({
   selector: 'app-header',
@@ -23,7 +22,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router, 
     private authService: AuthService,
-    private carrinhoService: CarrinhoService
+    private cartClientService: CartClientService
   ) {}
 
   ngOnInit(): void {
@@ -36,7 +35,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.subscriptions.push(routerSub);
 
     // Observa mudanças no carrinho em tempo real
-    const cartSub = this.carrinhoService.getCartItemCount().subscribe(count => {
+    const cartSub = this.cartClientService.itemCount$.subscribe((count: number) => {
       this.cartItemCount = count;
     });
     this.subscriptions.push(cartSub);
@@ -89,6 +88,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * Pode ser chamado por outros componentes quando itens são adicionados/removidos
    */
   refreshCartCount(): void {
-    this.carrinhoService.refreshCartItems();
+    // Com o novo serviço, a contagem é automaticamente atualizada via Observable
+    // Não precisa de refresh manual
   }
 }
