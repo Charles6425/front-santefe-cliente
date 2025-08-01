@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-    private urlBase = environment.baseUrl;
+    private urlBase = environment.apiUrl;
     private apiUrl = this.urlBase+'/auth/login/cliente';
     private authState = new BehaviorSubject<boolean>(false);
     authState$ = this.authState.asObservable();
