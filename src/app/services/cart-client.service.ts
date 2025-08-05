@@ -10,10 +10,7 @@ import {
     SolicitacaoVendaRequest,
     SolicitacaoVendaResponse,
     ItemCarrinho,
-    DadosVendaCliente,
-    // Manter compatibilidade
-    SolicitacaoVendaDTO,
-    SolicitacaoVendaResponseDTO
+    DadosVendaCliente
 } from '../models/cart-client.interface';
 import { Produto } from '../models/produto';
 import { environment } from '../../environments/environment';
@@ -25,7 +22,7 @@ export class CartClientService {
     private readonly CART_KEY = environment.cartKey;
     private readonly API_URL = environment.apiUrl;
 
-    // Subject para monitorar mudanças no carrinho
+    // Subject para monitorar mudanças no carrinho em tempo real
     private cartSubject = new BehaviorSubject<Cart>(this.getEmptyCart());
     public cart$ = this.cartSubject.asObservable();
 
@@ -33,12 +30,15 @@ export class CartClientService {
         private http: HttpClient,
         private snack: MatSnackBar
     ) {
-        // Carrega carrinho do localStorage ao inicializar
+        // Carrega carrinho do localStorage ao inicializar o serviço
         this.loadCartFromStorage();
     }
 
+    // ========== MÉTODOS PRIVADOS DE GERENCIAMENTO INTERNO ==========
+
     /**
-     * Estrutura de carrinho vazio
+     * Estrutura de carrinho vazio padrão
+     * Usado para inicialização e reset do carrinho
      */
     private getEmptyCart(): Cart {
         return {
@@ -52,13 +52,15 @@ export class CartClientService {
 
     /**
      * Carrega carrinho do localStorage
+     * Tenta recuperar dados do carrinho armazenados localmente
+     * Em caso de erro, limpa o carrinho para evitar estados inconsistentes
      */
     private loadCartFromStorage(): void {
         try {
             const stored = localStorage.getItem(this.CART_KEY);
             if (stored) {
                 const cart = JSON.parse(stored) as Cart;
-                // Apenas notificar se o carrinho realmente mudou
+                // Notifica apenas se o carrinho realmente mudou para evitar atualizações desnecessárias
                 const currentCart = this.cartSubject.getValue();
                 if (JSON.stringify(currentCart) !== JSON.stringify(cart)) {
                     this.cartSubject.next(cart);
@@ -72,6 +74,8 @@ export class CartClientService {
 
     /**
      * Salva carrinho no localStorage
+     * Atualiza timestamp e persiste dados do carrinho
+     * Usa setTimeout para evitar conflitos de hidratação no SSR
      */
     private saveCartToStorage(cart: Cart): void {
         try {
@@ -89,37 +93,44 @@ export class CartClientService {
 
     /**
      * Atualiza totais do carrinho
+     * Recalcula valores unitários, quantidade total e valor total do carrinho
+     * Garante consistência dos dados financeiros
      */
     private updateCartTotals(cart: Cart): void {
-        // Primeiro, garante que todos os itens têm valorTotal correto
+        // Garante que todos os itens têm valorTotal correto baseado na quantidade × valor unitário
         cart.items.forEach((item: CartItem) => {
             item.valorTotal = item.quantidade * item.valorUnitario;
         });
 
-        // Calcula totais do carrinho
+        // Calcula totais consolidados do carrinho
         cart.quantidadeItens = cart.items.reduce((sum, item) => sum + item.quantidade, 0);
         cart.valorProdutos = cart.items.reduce((sum, item) => sum + item.valorTotal, 0);
         cart.valorTotal = cart.valorProdutos; // Cliente não pode aplicar acréscimos/descontos
         cart.dataUltimaAtualizacao = new Date();
     }
 
+    // ========== MÉTODOS PÚBLICOS DE MANIPULAÇÃO DO CARRINHO ==========
+
     /**
      * Adiciona produto ao carrinho
+     * Se o produto já existe (mesmo ID + observação), incrementa quantidade
+     * Se é novo produto, cria novo item no carrinho
      */
     addItem(produto: Produto, quantidade: number = 1, observacao?: string): void {
         try {
             const cart = this.getCurrentCart();
+            // ID único baseado no produto + observação (permite mesmo produto com observações diferentes)
             const itemId = `${produto.id}_${observacao || ''}`;
 
             const existingItemIndex = cart.items.findIndex(item => item.id === itemId);
 
             if (existingItemIndex >= 0) {
-                // Atualizar item existente
+                // Atualizar item existente - incrementa quantidade
                 cart.items[existingItemIndex].quantidade += quantidade;
                 cart.items[existingItemIndex].valorTotal =
                     cart.items[existingItemIndex].quantidade * cart.items[existingItemIndex].valorUnitario;
             } else {
-                // Adicionar novo item
+                // Adicionar novo item ao carrinho
                 const newItem: CartItem = {
                     id: itemId,
                     produtoId: produto.id,
@@ -144,6 +155,7 @@ export class CartClientService {
 
     /**
      * Remove item do carrinho
+     * Remove completamente o item baseado no ID único
      */
     removeItem(itemId: string): void {
         try {
@@ -162,6 +174,8 @@ export class CartClientService {
 
     /**
      * Atualiza quantidade de um item
+     * Se nova quantidade <= 0, remove o item completamente
+     * Caso contrário, atualiza quantidade e recalcula valores
      */
     updateItemQuantity(itemId: string, newQuantity: number): void {
         try {
@@ -180,6 +194,7 @@ export class CartClientService {
                 this.saveCartToStorage(cart);
                 this.message('Quantidade atualizada');
             } else {
+                // Log de advertência para debug (mantido para troubleshooting)
                 console.warn('Item não encontrado no carrinho:', itemId);
                 this.message('Item não encontrado no carrinho', true);
             }
@@ -191,6 +206,7 @@ export class CartClientService {
 
     /**
      * Limpa todo o carrinho
+     * Remove todos os itens e reseta para estado inicial vazio
      */
     clearCart(): void {
         try {
@@ -201,6 +217,8 @@ export class CartClientService {
             console.error('Erro ao limpar carrinho:', error);
         }
     }
+
+    // ========== MÉTODOS PÚBLICOS DE CONSULTA ==========
 
     /**
      * Obtém carrinho atual
@@ -216,8 +234,12 @@ export class CartClientService {
         return this.getCurrentCart().items.length === 0;
     }
 
+    // ========== MÉTODOS DE INTEGRAÇÃO COM BACKEND ==========
+
     /**
      * Prepara dados para solicitação de venda (formato esperado pelo backend)
+     * Converte estrutura do carrinho para o formato de request da API
+     * Inclui validações e tratamento de dados obrigatórios
      */
     prepareSolicitation(clientData: ClientSaleData): SolicitacaoVendaRequest {
         const cart = this.getCurrentCart();
@@ -226,14 +248,14 @@ export class CartClientService {
             throw new Error('Carrinho está vazio');
         }
 
-        // Garantir que todos os itens têm valorTotal correto
+        // Garantir que todos os itens têm valorTotal correto antes do envio
         cart.items.forEach(item => {
             if (!item.valorTotal || item.valorTotal <= 0) {
                 item.valorTotal = item.quantidade * item.valorUnitario;
             }
         });
 
-        // Converter CartItem para ItemCarrinho (com valorTotal calculado)
+        // Converter CartItem para ItemCarrinho (formato do backend)
         const itens: ItemCarrinho[] = cart.items.map((item: CartItem) => ({
             produtoId: item.produtoId,
             categoriaId: item.categoriaId,
@@ -244,7 +266,7 @@ export class CartClientService {
         }));
 
         // Dados da venda no formato esperado pelo backend
-        const dadosVenda: any = {
+        const dadosVenda: DadosVendaCliente = {
             tipoAtendimento: clientData.tipoAtendimento,
             formaPagamento: clientData.formaPagamento,
             valorTotal: cart.valorTotal,
@@ -253,13 +275,13 @@ export class CartClientService {
             observacoes: clientData.observacoes
         };
 
-        // Se houver horário de retirada, incluir dentro de dadosVenda
+        // Incluir horário de retirada se fornecido
         if (clientData.horarioRetirada) {
             dadosVenda.horarioRetirada = clientData.horarioRetirada;
         }
 
-        // Montar o objeto principal do pedido
-        const solicitacaoRequest: any = {
+        // Estrutura final do pedido no formato correto
+        const solicitacaoRequest: SolicitacaoVendaRequest = {
             itens,
             dadosVenda,
             observacoes: clientData.observacoes
@@ -277,12 +299,8 @@ export class CartClientService {
      */
     criarSolicitacao(request: SolicitacaoVendaRequest): Observable<SolicitacaoVendaResponse> {
         const url = `${this.API_URL}/vendas/solicitar`;
-        // Log detalhado do payload, incluindo horário de retirada
-        console.log('🔍 [DEBUG] Payload enviado para backend:', JSON.stringify(request, null, 2));
-        if (request.dadosVenda && request.dadosVenda.horarioRetirada) {
-            console.log('⏰ [DEBUG] Horário de Retirada (dentro de dadosVenda):', request.dadosVenda.horarioRetirada);
-        }
-        // Validação extra: verificar se todos os itens têm valorTotal
+        
+        // Validação: verificar se todos os itens têm valorTotal válido
         const itensComProblema = request.itens.filter(item => !item.valorTotal || item.valorTotal <= 0);
         if (itensComProblema.length > 0) {
             console.error('❌ Itens sem valorTotal:', itensComProblema);
@@ -311,15 +329,19 @@ export class CartClientService {
     }
 
     /**
-     * Busca cliente por CPF (se necessário)
+     * Busca cliente por CPF
+     * Endpoint utilizado para validação de CPF durante o checkout
      */
     buscarClientePorCpf(cpf: string): Observable<any> {
         const url = `${this.API_URL}/clientes/cpf/${cpf}`;
         return this.http.get<any>(url);
     }
 
+    // ========== OBSERVABLES PARA COMPONENTES ==========
+
     /**
-     * Observables para componentes
+     * Observable da quantidade total de itens no carrinho
+     * Usado para atualizar badges/contadores em tempo real
      */
     get itemCount$(): Observable<number> {
         return this.cart$.pipe(
@@ -327,11 +349,17 @@ export class CartClientService {
         );
     }
 
+    /**
+     * Observable do valor total do carrinho
+     * Usado para exibir totais em tempo real
+     */
     get totalValue$(): Observable<number> {
         return this.cart$.pipe(
             map(cart => cart.valorTotal)
         );
     }
+
+    // ========== MÉTODOS UTILITÁRIOS ==========
 
     /**
      * Exibe mensagem para o usuário
