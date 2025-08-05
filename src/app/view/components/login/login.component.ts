@@ -22,14 +22,23 @@ export class LoginComponent {
 
   constructor(private authService: AuthService, private router: Router) {}
 
+  /**
+   * Realiza login do cliente
+   * Limpa tokens antigos, valida credenciais e redireciona para home
+   * Exibe mensagem de erro em caso de falha na autenticação
+   */
   login(): void {
-    this.authService.logout(); // Limpa tokens antigos antes de novo login
+    // Limpa tokens antigos para evitar conflitos
+    this.authService.logout();
+    
     this.loading = true;
     this.error = '';
+    
     this.authService.login(this.cpf, this.senha).subscribe({
       next: (res) => {
         this.loading = false;
-        this.router.navigate(['/home']); // Redireciona para a tela de boas-vindas
+        // Redireciona para a tela principal após login bem-sucedido
+        this.router.navigate(['/home']);
       },
       error: (err) => {
         this.loading = false;

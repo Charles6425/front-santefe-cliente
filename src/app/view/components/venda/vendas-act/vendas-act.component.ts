@@ -28,29 +28,42 @@ export class VendasActComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Componente inicializado sem carregar categorias/produtos automaticamente
-    // O carregamento é feito sob demanda quando necessário
+    // Carregamento sob demanda - categorias são carregadas quando necessário
+    // Isso melhora a performance inicial do componente
   }
 
+  /**
+   * Carrega todas as categorias disponíveis
+   * Usado para popular a lista de categorias na interface
+   */
   listarCategorias(): void {
-    // Carrega todas as categorias disponíveis
     this.categoriaService.findAll().subscribe((response) => {
       this.categorias = response;
     });
   }
 
+  /**
+   * Carrega produtos de uma categoria específica
+   * Define a categoria selecionada e atualiza lista de produtos
+   */
   listarProdutosPorCategoria(categoriaId: number): void {
-    // Define a categoria selecionada e carrega seus produtos
+    // Define categoria selecionada para controle de estado
     this.categoriaSelecionada = this.categorias.find(categoria => categoria.id === categoriaId) || null;
+    
+    // Carrega produtos da categoria selecionada
     this.produtoService.findAllByCategoria(categoriaId.toString()).subscribe((response) => {
       this.produtos = response;
     });
   }
 
+  /**
+   * Adiciona produto ao carrinho
+   * Valida se categoria foi selecionada antes de adicionar
+   * Inclui observação do produto se existir
+   */
   adicionarAoCarrinho(produto: Produto): void {
-    // Verifica se uma categoria foi selecionada antes de adicionar
     if (this.categoriaSelecionada) {
-      // Adiciona o produto ao carrinho usando o novo serviço
+      // Adiciona produto com quantidade padrão 1 e observação se existir
       this.cartClientService.addItem(produto, 1, produto.observacao || '');
       this.refreshService.triggerRefresh();
     } else {

@@ -5,39 +5,62 @@ import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Cliente } from '../models/cliente';
 
+/**
+ * Serviço para gerenciamento de clientes
+ * Responsável por operações CRUD de clientes
+ * Usado principalmente em operações administrativas
+ */
 @Injectable({
     providedIn: 'root'
 })
 export class ClienteService {
-
     baseUrl = environment.baseUrl;
 
     constructor(
         private http: HttpClient,
         private snack: MatSnackBar
-
     ) { }
 
+    /**
+     * Busca todos os clientes
+     * Usado em operações administrativas
+     */
     findAll(): Observable<Cliente[]> {
         const url = this.baseUrl + '/clientes';
         return this.http.get<Cliente[]>(url);
     }
 
+    /**
+     * Busca cliente por ID específico
+     * Usado para obter detalhes de um cliente
+     */
     findById(id: any): Observable<Cliente> {
         const url = this.baseUrl + '/clientes/' + id;
         return this.http.get<Cliente>(url);
     }
 
+    /**
+     * Cria novo cliente
+     * Usado em operações de cadastro
+     */
     create(cliente: Cliente): Observable<Cliente> {
         const url = this.baseUrl + '/clientes';
         return this.http.post<Cliente>(url, cliente);
     }
 
+    /**
+     * Atualiza cliente existente
+     * Usado em operações de edição de perfil
+     */
     update(cliente: Cliente): Observable<Cliente> {
         const url = this.baseUrl + '/clientes/' + cliente.id;
         return this.http.put<Cliente>(url, cliente);
     }
 
+    /**
+     * Exibe mensagem informativa para o usuário
+     * Usado para feedback de operações
+     */
     message(msg: string): void {
         this.snack.open(`${msg}`, 'OK', {
             horizontalPosition: 'center',

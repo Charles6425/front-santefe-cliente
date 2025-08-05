@@ -45,16 +45,21 @@ export class HomeComponent {
   ngOnInit(): void {
     this.buscarCategorias();
     
-    // Inscrever-se nas mudanças do carrinho
+    // Observa mudanças no carrinho em tempo real
     this.cartClientService.cart$.subscribe(cart => {
       this.cart = cart;
     });
     
+    // Observa refresh service (não necessário com localStorage, mas mantido para compatibilidade)
     this.refreshService.refresh$.subscribe(() => {
-      // Com localStorage, não precisa atualizar via HTTP
+      // Com localStorage, estado do carrinho já é persistente
     });
   }
 
+  /**
+   * Carrega todas as categorias disponíveis
+   * Reseta estado de categoria e produtos selecionados
+   */
   buscarCategorias(): void {
     this.loading = true;
     this.categoriaService.findAll().subscribe({
@@ -66,13 +71,19 @@ export class HomeComponent {
       },
       error: () => {
         this.loading = false;
+        this.cartClientService.message('Erro ao carregar categorias', true);
       }
     });
   }
 
+  /**
+   * Carrega produtos de uma categoria específica
+   * Define categoria selecionada e busca produtos relacionados
+   */
   buscarProdutosPorCategoria(categoria: Categoria): void {
     this.categoriaSelecionada = categoria;
     this.loading = true;
+    
     this.produtoService.findAllByCategoria(categoria.id.toString()).subscribe({
       next: (res) => {
         this.produtos = res;
@@ -80,23 +91,36 @@ export class HomeComponent {
       },
       error: () => {
         this.loading = false;
+        this.cartClientService.message('Erro ao carregar produtos', true);
       }
     });
   }
 
+  /**
+   * Volta para a visualização de categorias
+   * Limpa seleção de categoria e lista de produtos
+   */
   voltarParaCategorias(): void {
     this.categoriaSelecionada = null;
     this.produtos = [];
   }
 
+  /**
+   * Adiciona produto ao carrinho
+   * Valida se categoria está selecionada antes de adicionar
+   */
   adicionarAoCarrinho(produto: Produto): void {
     if (!this.categoriaSelecionada) return;
     
-    // Usar o novo serviço para adicionar ao carrinho
+    // Adiciona produto ao carrinho com quantidade padrão 1
     this.cartClientService.addItem(produto, 1, produto.observacao || '');
     this.refreshService.triggerRefresh();
   }
 
+  /**
+   * Verifica se produto já está no carrinho
+   * Usado para controlar exibição visual na interface
+   */
   estaNoCarrinho(produto: Produto): boolean {
     return this.cart.items.some(item => item.produtoId === produto.id);
   }

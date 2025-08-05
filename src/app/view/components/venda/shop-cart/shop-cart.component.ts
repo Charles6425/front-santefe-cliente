@@ -189,7 +189,8 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Carrega a lista de produtos
+   * Carrega a lista de produtos para exibição no carrinho
+   * Necessário para validar produtos no carrinho e exibir informações completas
    */
   private loadProdutos(): void {
     this.produtoService.findAll().subscribe({
@@ -198,12 +199,14 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (error) => {
         console.error('Erro ao carregar produtos:', error);
+        this.cartClientService.message('Erro ao carregar produtos', true);
       }
     });
   }
 
   /**
-   * Carrega a lista de categorias
+   * Carrega a lista de categorias e constrói mapa para consulta rápida
+   * Usado para exibir nome das categorias na interface do carrinho
    */
   private loadCategorias(): void {
     this.categoriaService.findAll().subscribe({
@@ -216,6 +219,7 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (error) => {
         console.error('Erro ao carregar categorias:', error);
+        this.cartClientService.message('Erro ao carregar categorias', true);
       }
     });
   }
@@ -249,7 +253,8 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Busca cliente por CPF
+   * Busca cliente por CPF para preenchimento automático dos dados
+   * Utilizado em pedidos de ENTREGA e RETIRADA que necessitam dados do cliente
    */
   buscarClientePorCpf(): void {
     const cpf = this.checkoutForm.get('cpfCliente')?.value;
@@ -262,7 +267,7 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
     this.buscandoCliente = true;
     this.cartClientService.buscarClientePorCpf(cpf).subscribe({
       next: (cliente) => {
-        // Preenche dados do cliente encontrado
+        // Preenche dados do cliente encontrado automaticamente
         this.checkoutForm.patchValue({
           nomeCliente: cliente.nome,
           telefoneCliente: cliente.telefone,
@@ -282,7 +287,8 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Verifica se precisa de dados do cliente
+   * Verifica se o tipo de atendimento selecionado precisa de dados do cliente
+   * ENTREGA e RETIRADA requerem identificação do cliente
    */
   needsCustomerData(): boolean {
     const tipo = this.checkoutForm.get('tipoAtendimento')?.value;
@@ -304,19 +310,21 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Criar solicitação de venda
+   * Finaliza pedido criando solicitação de venda
+   * Valida formulário, prepara dados e envia para o backend
+   * Após sucesso, limpa carrinho e redireciona para home
    */
   async criarSolicitacao(): Promise<void> {
     if (this.finalizandoVenda) return;
 
-    // Validar formulário
+    // Validar formulário obrigatório
     this.checkoutForm.markAllAsTouched();
     if (!this.checkoutForm.valid) {
       this.cartClientService.message('Preencha todos os campos obrigatórios.', true);
       return;
     }
 
-    // Validar carrinho
+    // Validar se há itens no carrinho
     if (this.isCartEmpty()) {
       this.cartClientService.message('Adicione itens ao carrinho antes de enviar o pedido.', true);
       return;
@@ -325,7 +333,7 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       this.finalizandoVenda = true;
 
-      // Preparar dados da solicitação
+      // Preparar dados da solicitação baseados no formulário
       const formData = this.checkoutForm.value;
       const saleData: ClientSaleData = {
         tipoAtendimento: formData.tipoAtendimento,
@@ -337,7 +345,7 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const request: SolicitacaoVendaRequest = this.cartClientService.prepareSolicitation(saleData);
 
-      // Adicionar dados do cliente se necessário
+      // Adicionar dados do cliente se necessário (ENTREGA ou RETIRADA)
       if (this.needsCustomerData()) {
         request.cpfCliente = formData.cpfCliente;
         request.nomeCliente = formData.nomeCliente;
@@ -348,17 +356,17 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
 
-      // Enviar solicitação
+      // Enviar solicitação para o backend
       const response = await this.cartClientService.criarSolicitacao(request).toPromise();
 
-      // Sucesso!
+      // Sucesso! Limpar estado e redirecionar
       this.cartClientService.clearCart();
       this.resetForm();
       this.cartClientService.message(
         response?.mensagem || 'Pedido enviado com sucesso! Aguardando confirmação do estabelecimento.'
       );
       
-      // Redirecionar para página de sucesso ou home
+      // Redirecionar para página inicial
       this.router.navigate(['/home']);
 
     } catch (error) {
@@ -369,8 +377,11 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // ========== MÉTODOS PRIVADOS DE SUPORTE ==========
+
   /**
-   * Reseta o formulário
+   * Reseta o formulário para estado inicial
+   * Usado após sucesso no envio do pedido
    */
   private resetForm(): void {
     this.checkoutForm.reset({
@@ -391,6 +402,7 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Marca todos os campos como tocados para exibir erros
+   * Usado na validação do formulário antes do envio
    */
   private markAllFieldsAsTouched(): void {
     Object.keys(this.checkoutForm.controls).forEach(key => {
@@ -398,8 +410,13 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // ========== MÉTODOS PÚBLICOS DE VALIDAÇÃO ==========
+
+  // ========== MÉTODOS PÚBLICOS DE VALIDAÇÃO ==========
+
   /**
-   * Verifica se um campo é obrigatório e tem erro
+   * Verifica se um campo específico tem erro obrigatório e foi tocado
+   * Usado no template para exibir mensagens de erro
    */
   hasRequiredError(fieldName: string): boolean {
     const field = this.checkoutForm.get(fieldName);
@@ -407,7 +424,8 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Obtém mensagem de erro para um campo
+   * Obtém mensagem de erro personalizada para um campo
+   * Retorna string vazia se não há erro
    */
   getFieldError(fieldName: string): string {
     const field = this.checkoutForm.get(fieldName);
@@ -420,7 +438,8 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Obtém o label de um campo
+   * Obtém o label/nome amigável de um campo do formulário
+   * Usado para mensagens de erro mais claras
    */
   private getFieldLabel(fieldName: string): string {
     const labels: { [key: string]: string } = {
