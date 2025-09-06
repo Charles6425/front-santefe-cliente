@@ -363,7 +363,7 @@ export class ShopCartComponent implements OnInit, AfterViewInit, OnDestroy {
       this.cartClientService.clearCart();
       this.resetForm();
       this.cartClientService.message(
-        response?.mensagem || 'Pedido enviado com sucesso! Aguardando confirmação do estabelecimento.'
+        response?.mensagem || 'Pedido solicitado com sucesso!'
       );
       
       // Redirecionar para página inicial

@@ -303,7 +303,7 @@ export class CartClientService {
         // Validação: verificar se todos os itens têm valorTotal válido
         const itensComProblema = request.itens.filter(item => !item.valorTotal || item.valorTotal <= 0);
         if (itensComProblema.length > 0) {
-            console.error('❌ Itens sem valorTotal:', itensComProblema);
+            console.error('Itens sem valorTotal:', itensComProblema);
             this.message('Erro: Itens com valor inválido detectados', true);
             return throwError('Itens com valor inválido');
         }
